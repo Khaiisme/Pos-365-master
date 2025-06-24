@@ -376,7 +376,8 @@ const App = () => {
   const [orderItems, setOrderItems] = useState(storedOrders);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTable, setCurrentTable] = useState(null);
-
+  setOrderItems(storedOrders)
+  
   // Add an "Abholung" table with a dynamic name (e.g., Abholung 1, Abholung 2
 
   // Handle clicking on a table to open the modal and reset order items
@@ -448,10 +449,6 @@ const App = () => {
     // First reload
     window.location.reload();
 
-    // Second reload after short delay
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
   };
   return (
     <div className="w-full overflow-y-auto bg-white text-black flex flex-col items-center p-15">
