@@ -346,11 +346,11 @@ const dishes = [
 ];
 
 const App = () => {
-
+  
   // Retrieve orders from the backend 
   // 1. Fetch orders from backend when component mounts (page loads)
   useEffect(() => {
-    fetch('http://localhost:5000/api/orders')
+    fetch('https://asianloopserver.onrender.com/api/orders')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -403,7 +403,7 @@ const App = () => {
       orders
     }));
     console.log("Payload to sync:", payload);
-    fetch('http://localhost:5000/api/orders', {
+    fetch('https://asianloopserver.onrender.com/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -429,7 +429,7 @@ const App = () => {
       orders
     }));
 
-    fetch('http://localhost:5000/api/orders', {
+    fetch('https://asianloopserver.onrender.com/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

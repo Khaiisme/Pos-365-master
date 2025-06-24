@@ -4,7 +4,11 @@ const cors = require('cors');
 const Order = require('./Order');
 
 const app = express();
-app.use(cors());
+// Middleware to handle CORS and JSON parsing
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 require('dotenv').config();
 // Connect to MongoDB
@@ -50,6 +54,6 @@ app.get('/api/orders', async ( req , res) => {
 
 // Start the server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
 });

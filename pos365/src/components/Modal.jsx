@@ -118,7 +118,7 @@ const Modal = ({
       table,
       orders
     }));
-    fetch('http://localhost:5000/api/orders', {
+    fetch('https://asianloopserver.onrender.com/api/orders', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
