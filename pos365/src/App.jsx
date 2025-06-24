@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Table from "./components/Table";
 import Modal from "./components/Modal";
-
+import { FiRotateCcw } from 'react-icons/fi';
 // Sample dish data (name and price)
 const dishes = [
   { name: "M1", price: 11.9 },
@@ -346,7 +346,7 @@ const dishes = [
 ];
 
 const App = () => {
-  
+
   // Retrieve orders from the backend 
   // 1. Fetch orders from backend when component mounts (page loads)
   useEffect(() => {
@@ -443,7 +443,7 @@ const App = () => {
   ).map(Number); // convert to number if needed
 
   const totalSales = parseFloat(localStorage.getItem("totalSales")) || 0;
-  
+
   const handleRefreshTwice = () => {
     // First reload
     window.location.reload();
@@ -456,9 +456,9 @@ const App = () => {
   return (
     <div className="w-full overflow-y-auto bg-white text-black flex flex-col items-center p-15">
       <h1 className="text-3xl text-green-300 font-bold mb-3">Asian Loop</h1>
-      <button onClick={handleRefreshTwice}>
-      Refresh Twice
-    </button>
+      <button onClick={handleRefreshTwice} style={{ fontSize: '24px', cursor: 'pointer', background: 'none', border: 'none' }}>
+        <FiRotateCcw />
+      </button>
       <div className="grid grid-cols-3 gap-4 w-full">
         {tables.map((table, index) => {
           const hasOrder = tablesWithOrders.includes(table);
