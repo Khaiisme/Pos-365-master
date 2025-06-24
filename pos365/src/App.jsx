@@ -443,9 +443,22 @@ const App = () => {
   ).map(Number); // convert to number if needed
 
   const totalSales = parseFloat(localStorage.getItem("totalSales")) || 0;
+  
+  const handleRefreshTwice = () => {
+    // First reload
+    window.location.reload();
+
+    // Second reload after short delay
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  };
   return (
     <div className="w-full overflow-y-auto bg-white text-black flex flex-col items-center p-15">
-      <h1 className="text-3xl text-green-300 font-bold mb-10">Asian Loop</h1>
+      <h1 className="text-3xl text-green-300 font-bold mb-3">Asian Loop</h1>
+      <button onClick={handleRefreshTwice}>
+      Refresh Twice
+    </button>
       <div className="grid grid-cols-3 gap-4 w-full">
         {tables.map((table, index) => {
           const hasOrder = tablesWithOrders.includes(table);
