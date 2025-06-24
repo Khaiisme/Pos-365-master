@@ -346,6 +346,11 @@ const dishes = [
 ];
 
 const App = () => {
+    // Read from localStorage and set the initial state for tables and orders
+  const storedTables = JSON.parse(localStorage.getItem("tables")) || [
+    ...Array.from({ length: 15 }, (_, i) => i + 1),         // 1 to 11
+    ...Array.from({ length: 8 }, (_, i) => i + 20)          // 15 to 19
+  ];
   const [tables, setTables] = useState(storedTables);
   const [orderItems, setOrderItems] = useState();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -362,19 +367,19 @@ const App = () => {
             ordersObject[table] = orders;
           });
           localStorage.setItem('orders', JSON.stringify(ordersObject));
-          console.log('Restored orders from DB to localStorage');
+          setOrderItems(ordersObject); // update state here after fetch
+          console.log('Restored orders from DB to localStorage and state');
         }
       })
-      .catch(err => console.error('Error fetching orders:', err));
-    const storedOrders = JSON.parse(localStorage.getItem("orders")) || {};
-    setOrderItems(storedOrders);
-  }, []); // empty dependency array → runs once on mount
+      .catch(err => {
+        console.error('Error fetching orders:', err);
+        // fallback: try reading from localStorage if fetch fails
+        const fallbackOrders = JSON.parse(localStorage.getItem("orders")) || {};
+        setOrderItems(fallbackOrders);
+      });
+  }, []);
 
-  // Read from localStorage and set the initial state for tables and orders
-  const storedTables = JSON.parse(localStorage.getItem("tables")) || [
-    ...Array.from({ length: 15 }, (_, i) => i + 1),         // 1 to 11
-    ...Array.from({ length: 8 }, (_, i) => i + 20)          // 15 to 19
-  ];
+
 
 
 
