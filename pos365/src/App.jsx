@@ -346,7 +346,10 @@ const dishes = [
 ];
 
 const App = () => {
-
+  const [tables, setTables] = useState(storedTables);
+  const [orderItems, setOrderItems] = useState();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentTable, setCurrentTable] = useState(null);
   // Retrieve orders from the backend 
   // 1. Fetch orders from backend when component mounts (page loads)
   useEffect(() => {
@@ -363,6 +366,8 @@ const App = () => {
         }
       })
       .catch(err => console.error('Error fetching orders:', err));
+    const storedOrders = JSON.parse(localStorage.getItem("orders")) || {};
+    setOrderItems(storedOrders);
   }, []); // empty dependency array → runs once on mount
 
   // Read from localStorage and set the initial state for tables and orders
@@ -370,14 +375,11 @@ const App = () => {
     ...Array.from({ length: 15 }, (_, i) => i + 1),         // 1 to 11
     ...Array.from({ length: 8 }, (_, i) => i + 20)          // 15 to 19
   ];
-  const storedOrders = JSON.parse(localStorage.getItem("orders")) || {};
 
-  const [tables, setTables] = useState(storedTables);
-  const [orderItems, setOrderItems] = useState(storedOrders);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentTable, setCurrentTable] = useState(null);
-  setOrderItems(storedOrders)
-  
+
+
+
+
   // Add an "Abholung" table with a dynamic name (e.g., Abholung 1, Abholung 2
 
   // Handle clicking on a table to open the modal and reset order items
