@@ -451,7 +451,7 @@ const App = () => {
     // Second reload after short delay
     setTimeout(() => {
       window.location.reload();
-    }, 100);
+    }, 1000);
   };
   return (
     <div className="w-full overflow-y-auto bg-white text-black flex flex-col items-center p-15">
