@@ -358,7 +358,7 @@ const App = () => {
   const [currentTable, setCurrentTable] = useState(null);
   // Retrieve orders from the backend 
   // 1. Fetch orders from backend when component mounts (page loads)
-  useEffect(() => {
+   useEffect(() => {
     fetch('https://asianloopserver.onrender.com/api/orders')
       .then(res => res.json())
       .then(data => {
@@ -368,17 +368,23 @@ const App = () => {
             ordersObject[table] = orders;
           });
           localStorage.setItem('orders', JSON.stringify(ordersObject));
-          setOrderItems(ordersObject); // update state here after fetch
+          setOrderItems(ordersObject);
           console.log('Restored orders from DB to localStorage and state');
         }
       })
       .catch(err => {
         console.error('Error fetching orders:', err);
-        // fallback: try reading from localStorage if fetch fails
         const fallbackOrders = JSON.parse(localStorage.getItem("orders")) || {};
         setOrderItems(fallbackOrders);
+      })
+      .finally(() => {
+        setLoading(false); // Done loading, hide loading screen
       });
   }, []);
+
+  if (loading) {
+    return <div className="mt-20 text-4xl text-center">Loading...</div>; // You can replace this with a spinner or fancy UI
+  }
 
 
 
