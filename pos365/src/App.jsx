@@ -351,7 +351,15 @@ const App = () => {
     ...Array.from({ length: 15 }, (_, i) => i + 1),         // 1 to 11
     ...Array.from({ length: 8 }, (_, i) => i + 20)          // 15 to 19
   ];
-  const storedOrders = JSON.parse(localStorage.getItem("orders")) || {};
+  let storedOrders = {};
+  try {
+    const raw = localStorage.getItem("orders");
+    storedOrders = raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    console.error("Failed to parse orders from localStorage:", e);
+    storedOrders = {};
+  }
+
   const [tables, setTables] = useState(storedTables);
   const [orderItems, setOrderItems] = useState(storedOrders);
   const [isModalOpen, setIsModalOpen] = useState(false);
