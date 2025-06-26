@@ -356,6 +356,7 @@ const App = () => {
   const [orderItems, setOrderItems] = useState(storedOrders);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTable, setCurrentTable] = useState(null);
+  const [loading, setLoading] = useState(true); // Loading state
   // Retrieve orders from the backend 
   // 1. Fetch orders from backend when component mounts (page loads)
    useEffect(() => {
