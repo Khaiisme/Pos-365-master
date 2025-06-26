@@ -346,7 +346,7 @@ const dishes = [
 ];
 
 const App = () => {
-    // Read from localStorage and set the initial state for tables and orders
+  // Read from localStorage and set the initial state for tables and orders
   const storedTables = JSON.parse(localStorage.getItem("tables")) || [
     ...Array.from({ length: 15 }, (_, i) => i + 1),         // 1 to 11
     ...Array.from({ length: 8 }, (_, i) => i + 20)          // 15 to 19
@@ -359,32 +359,43 @@ const App = () => {
   const [loading, setLoading] = useState(true); // Loading state
   // Retrieve orders from the backend 
   // 1. Fetch orders from backend when component mounts (page loads)
-   useEffect(() => {
-    fetch('https://asianloopserver.onrender.com/api/orders')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          const ordersObject = {};
-          data.forEach(({ table, orders }) => {
-            ordersObject[table] = orders;
-          });
-          localStorage.setItem('orders', JSON.stringify(ordersObject));
-          setOrderItems(ordersObject);
-          console.log('Restored orders from DB to localStorage and state');
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching orders:', err);
-        const fallbackOrders = JSON.parse(localStorage.getItem("orders")) || {};
-        setOrderItems(fallbackOrders);
-      })
-      .finally(() => {
-        setLoading(false); // Done loading, hide loading screen
-      });
+  useEffect(() => {
+    const fetchOrders = () => {
+      fetch('https://asianloopserver.onrender.com/api/orders')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const ordersObject = {};
+            data.forEach(({ table, orders }) => {
+              ordersObject[table] = orders;
+            });
+            localStorage.setItem('orders', JSON.stringify(ordersObject));
+            setOrderItems(ordersObject);
+            console.log('Restored orders from DB to localStorage and state');
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching orders:', err);
+          const fallbackOrders = JSON.parse(localStorage.getItem("orders")) || {};
+          setOrderItems(fallbackOrders);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    };
+
+    // Initial fetch
+    fetchOrders();
+
+    // Polling every 10 seconds
+    const interval = setInterval(fetchOrders, 10000);
+
+    // Cleanup on unmount
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
-    return <div className="mt-20 text-4xl text-center">Loading...</div>; // You can replace this with a spinner or fancy UI
+    return <div className="mt-20 ml-30 text-4xl text-center">Loading...</div>; // You can replace this with a spinner or fancy UI
   }
 
 
