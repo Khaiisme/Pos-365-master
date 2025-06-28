@@ -378,7 +378,7 @@ const App = () => {
               ordersObject[table] = orders;
             });
             localStorage.setItem('orders', JSON.stringify(ordersObject));
-            setOrderItems(ordersObject);
+            setOrderItems(ordersObject[currentTable] || []);
             console.log('Restored orders from DB to localStorage and state');
           }
         })
