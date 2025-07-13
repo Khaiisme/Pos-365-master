@@ -52,6 +52,16 @@ app.get('/api/orders', async ( req , res) => {
   }
 });
 
+app.get('/health', async (req, res) => {
+  const isConnected = mongoose.connection.readyState === 1; // 1 = connected
+
+  if (isConnected) {
+    res.status(200).json({ status: 'ok', db: 'connected' });
+  } else {
+    res.status(503).json({ status: 'fail', db: 'disconnected' });
+  }
+});
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {

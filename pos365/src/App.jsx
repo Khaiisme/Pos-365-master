@@ -401,8 +401,33 @@ const App = () => {
     return () => clearInterval(interval);
   }, []);
 
+   useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        const res = await fetch('https://asianloopserver.onrender.com/health');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.db === 'connected') {
+            setLoading(false);
+          } else {
+            setLoading(true);
+          }
+        } else {
+          setLoading(true);
+        }
+      } catch (error) {
+        setLoading(true);
+      }
+    };
+
+    checkBackend(); // check immediately
+    const interval = setInterval(checkBackend, 5000); // check every 5s
+
+    return () => clearInterval(interval);
+  }, []);
+
   if (loading) {
-    return <div className="mt-20 ml-30 text-4xl text-center">Loading...</div>; // You can replace this with a spinner or fancy UI
+    return <div className="mt-15 ml-30 text-4xl text-center">Loading...</div>; // You can replace this with a spinner or fancy UI
   }
 
 
