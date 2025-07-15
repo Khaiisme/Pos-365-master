@@ -2,8 +2,16 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const Order = require('./Order');
-
+const http = require('http'); // <-- required for socket.io
 const app = express();
+
+const server = http.createServer(app); 
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    credentials: true
+  }
+});
 // Middleware to handle CORS and JSON parsing
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
@@ -15,6 +23,15 @@ require('dotenv').config();
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error("MongoDB error:", err));
+
+  // WebSocket logic
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
 
 // POST /api/orders - save all table orders
 // POST /api/orders - replace all orders with new ones
@@ -33,7 +50,8 @@ app.post('/api/orders', async (req, res) => {
     // 2. Insert the new orders
     const savedOrders = await Order.insertMany(tables);
     console.log("Saved orders:", savedOrders);
-
+      // Emit update to all connected clients
+    io.emit('ordersUpdated', savedOrders);  // <-- real-time broadcast
     res.status(200).json(savedOrders);
   } catch (error) {
     console.error("Error saving orders:", error);

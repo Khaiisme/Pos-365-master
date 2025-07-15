@@ -344,8 +344,20 @@ const dishes = [
   { name: "Flasche Merlot", price: 20 },
   { name: "Merlot", price: 6.5 },
 ];
+import { io } from 'socket.io-client';
 
 const App = () => {
+
+  const socket = io('https://asianloopserver.onrender.com/api/orders'); 
+  useEffect(() => {
+  socket.on('ordersUpdated', (data) => {
+    console.log('Received updated orders:', data);
+    setOrderItems(data); // Update your state
+  });
+
+  return () => socket.disconnect();
+}, []);
+
   // Read from localStorage and set the initial state for tables and orders
   const storedTables = JSON.parse(localStorage.getItem("tables")) || [
     ...Array.from({ length: 15 }, (_, i) => i + 1),         // 1 to 11
