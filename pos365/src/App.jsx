@@ -361,7 +361,7 @@ const App = () => {
 
     // Save to localStorage + state
     localStorage.setItem('orders', JSON.stringify(ordersObject));
-    setOrderItems(ordersObject);
+    setOrderItems(data);
   });
 
   return () => {
