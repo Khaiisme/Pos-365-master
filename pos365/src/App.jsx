@@ -344,18 +344,29 @@ const dishes = [
   { name: "Flasche Merlot", price: 20 },
   { name: "Merlot", price: 6.5 },
 ];
-import { io } from 'socket.io-client';
+
+import { socket } from "./socket"; // adjust path to your socket file
 
 const App = () => {
 
-  const socket = io('https://asianloopserver.onrender.com/api/orders'); 
   useEffect(() => {
   socket.on('ordersUpdated', (data) => {
     console.log('Received updated orders:', data);
-    setOrderItems(data); // Update your state
+
+    // Convert array to object format { table: orders[] }
+    const ordersObject = {};
+    data.forEach(({ table, orders }) => {
+      ordersObject[table] = orders;
+    });
+
+    // Save to localStorage + state
+    localStorage.setItem('orders', JSON.stringify(ordersObject));
+    setOrderItems(ordersObject);
   });
 
-  return () => socket.disconnect();
+  return () => {
+    socket.off('ordersUpdated'); // cleanup
+  };
 }, []);
 
   // Read from localStorage and set the initial state for tables and orders
