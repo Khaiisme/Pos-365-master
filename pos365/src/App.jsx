@@ -350,24 +350,24 @@ import { socket } from "./socket"; // adjust path to your socket file
 const App = () => {
 
   useEffect(() => {
-  socket.on('ordersUpdated', (data) => {
-    console.log('Received updated orders:', data);
+    socket.on('ordersUpdated', (data) => {
+      console.log('Received updated orders:', data);
 
-    // Convert array to object format { table: orders[] }
-    const ordersObject = {};
-    data.forEach(({ table, orders }) => {
-      ordersObject[table] = orders;
+      // Convert array to object format { table: orders[] }
+      const ordersObject = {};
+      data.forEach(({ table, orders }) => {
+        ordersObject[table] = orders;
+      });
+
+      // Save to localStorage + state
+      localStorage.setItem('orders', JSON.stringify(ordersObject));
+      setOrderItems(ordersObject);
     });
 
-    // Save to localStorage + state
-    localStorage.setItem('orders', JSON.stringify(ordersObject));
-    setOrderItems(data);
-  });
-
-  return () => {
-    socket.off('ordersUpdated'); // cleanup
-  };
-}, []);
+    return () => {
+      socket.off('ordersUpdated'); // cleanup
+    };
+  }, []);
 
   // Read from localStorage and set the initial state for tables and orders
   const storedTables = JSON.parse(localStorage.getItem("tables")) || [
@@ -424,7 +424,7 @@ const App = () => {
     return () => clearInterval(interval);
   }, []);
 
-   useEffect(() => {
+  useEffect(() => {
     const checkBackend = async () => {
       try {
         const res = await fetch('https://asianloopserver.onrender.com/health');
