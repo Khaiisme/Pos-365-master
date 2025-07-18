@@ -161,7 +161,7 @@ const Modal = ({
       <div className="text-xl fixed inset-0 bg-gray-400 bg-opacity-50 flex justify-center items-center z-50">
         <div
           ref={modalRef}
-          className="bg-white p-6 rounded-lg w-full h-full sm:max-w-md sm:max-h-screen overflow-y-auto"
+          className="bg-white p-6 rounded-lg w-full h-full sm:max-w-md sm:max-h-screen overflow-y-auto relative"
         >
           {/* Close button (X) */}
           <button

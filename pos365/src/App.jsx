@@ -136,10 +136,10 @@ const dishes = [
   { name: "44b.Teriyaki Garnelen", price: 17.9 },
   { name: "44c.Teriyaki Ente", price: 17.5 },
 
-  { name: "45a.Teriyaki Tofu", price: 13.5 },
-  { name: "45b.Teriyaki Hähnchen", price: 14.5 },
-  { name: "45c.Teriyaki Rind", price: 14.9 },
-  { name: "45d.Teriyaki Garnelen", price: 15.9 },
+  { name: "45a.Thot Aubergine Tofu", price: 13.5 },
+  { name: "45b.Thot Aubergine Hähnchen", price: 14.5 },
+  { name: "45c.Thot Aubergine Rind", price: 14.9 },
+  { name: "45d.Thot Aubergine Garnelen", price: 15.9 },
 
   { name: "60.Futo Big", price: 8.9 },
   { name: "61.Futo Big Roll", price: 8.2 },
@@ -256,10 +256,10 @@ const dishes = [
   { name: "233.Ingwer Tee", price: 3.9 },
   { name: "234.Minztee", price: 3.9 },
   { name: "235.SchwarzTee", price: 3.2 },
-  { name: "236.Pfefferminztee", price: 3.2 },
-  { name: "237.Kamillentee", price: 3.2 },
-  { name: "238.Honig Tee", price: 3.9 },
-  { name: "239.Roseblumen Tee", price: 3.9 },
+  { name: "336.Pfefferminztee", price: 3.2 },
+  { name: "337.Kamillentee", price: 3.2 },
+  { name: "338.Orange-Honig Tee", price: 3.9 },
+  { name: "339.Orange-Roseblumen Tee", price: 3.9 },
 
   { name: "240.Ca Phe Vietnam", price: 4.9 },
   { name: "Espresso", price: 2.9 },
@@ -317,6 +317,7 @@ const dishes = [
   { name: "Litschisaft", price: 4.7 },
   { name: "Kiba", price: 4.7 },
 
+
   { name: "Bitburger Klein", price: 3.9 },
   { name: "Radler Klein ", price: 3.9 },
   { name: "Diesel Klein", price: 3.9 },
@@ -345,29 +346,10 @@ const dishes = [
   { name: "Merlot", price: 6.5 },
 ];
 
-import { socket } from "./socket"; // adjust path to your socket file
 
 const App = () => {
 
-  useEffect(() => {
-    socket.on('ordersUpdated', (data) => {
-      console.log('Received updated orders:', data);
 
-      // Convert array to object format { table: orders[] }
-      const ordersObject = {};
-      data.forEach(({ table, orders }) => {
-        ordersObject[table] = orders;
-      });
-
-      // Save to localStorage + state
-      localStorage.setItem('orders', JSON.stringify(ordersObject));
-      setOrderItems(ordersObject);
-    });
-
-    return () => {
-      socket.off('ordersUpdated'); // cleanup
-    };
-  }, []);
 
   // Read from localStorage and set the initial state for tables and orders
   const storedTables = JSON.parse(localStorage.getItem("tables")) || [
@@ -402,6 +384,7 @@ const App = () => {
             });
             localStorage.setItem('orders', JSON.stringify(ordersObject));
             console.log('Restored orders from DB to localStorage and state');
+            setOrderItems(ordersObject);
           }
         })
         .catch(err => {
@@ -418,7 +401,7 @@ const App = () => {
     fetchOrders();
 
     // Polling every 10 seconds
-    const interval = setInterval(fetchOrders, 10000);
+    const interval = setInterval(fetchOrders, 1000000);
 
     // Cleanup on unmount
     return () => clearInterval(interval);
