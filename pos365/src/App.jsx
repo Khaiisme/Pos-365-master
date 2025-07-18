@@ -383,10 +383,16 @@ const App = () => {
               ordersObject[table] = orders;
             });
             localStorage.setItem('orders', JSON.stringify(ordersObject));
-            console.log('Restored orders from DB to localStorage and state',ordersObject,data);
+            console.log('Restored orders from DB to localStorage and state');
             const ordersArray = Object.values(ordersObject);
-
-            setOrderItems(ordersArray);
+            console.log('Orders Array:', ordersArray);  
+            const raw = localStorage.getItem("orders");
+            if (raw) {
+              setOrderItems(JSON.parse(raw));
+            } else {
+              setOrderItems({});
+            }
+           
           }
         })
         .catch(err => {
