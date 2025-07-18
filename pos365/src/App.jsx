@@ -383,8 +383,8 @@ const App = () => {
               ordersObject[table] = orders;
             });
             localStorage.setItem('orders', JSON.stringify(ordersObject));
-            console.log('Restored orders from DB to localStorage and state');
-            setOrderItems(ordersObject);
+            console.log('Restored orders from DB to localStorage and state',ordersObject,data);
+            // setOrderItems(ordersObject);
           }
         })
         .catch(err => {
@@ -401,7 +401,7 @@ const App = () => {
     fetchOrders();
 
     // Polling every 10 seconds
-    const interval = setInterval(fetchOrders, 1000000);
+    const interval = setInterval(fetchOrders, 5000);
 
     // Cleanup on unmount
     return () => clearInterval(interval);
