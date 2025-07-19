@@ -227,7 +227,7 @@ const Modal = ({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={1}
-              className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 resize-none overflow-hidden"
+              className="w-full flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 resize-none overflow-hidden"
               placeholder="Write your note here..."
             />
           </div>
