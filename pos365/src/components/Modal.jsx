@@ -155,6 +155,13 @@ const Modal = ({
       localStorage.setItem("notes", JSON.stringify(storedNotes));
     }
   }, [note, tableName]);
+   useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto'; // Reset height
+      textarea.style.height = `${textarea.scrollHeight}px`; // Set new height
+    }
+  }, [note]);
 
   return (
     isOpen && (
