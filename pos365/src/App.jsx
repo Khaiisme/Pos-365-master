@@ -404,7 +404,7 @@ const App = () => {
     fetchOrders();
 
     // Polling every 10 seconds
-    const interval = setInterval(fetchOrders, 200000);
+    const interval = setInterval(fetchOrders, 5000);
 
     // Cleanup on unmount
     return () => clearInterval(interval);
