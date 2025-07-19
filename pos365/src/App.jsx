@@ -325,7 +325,7 @@ const dishes = [
   { name: "Radler Groß", price: 5.5 },
   { name: "Diesel Groß", price: 5.5 },
 
-  { name: "Taiger Bier ", price: 4.5 },
+  { name: "Tiger Bier ", price: 4.5 },
   { name: "Saigon Bier", price: 4.5 },
   { name: "Hefeweizen ", price: 5.5 },
   { name: "Hefeweizen Alkoholfrei", price: 5.5 },
@@ -344,6 +344,8 @@ const dishes = [
   { name: "Flasche Grauburgrunder", price: 23.5 },
   { name: "Flasche Merlot", price: 20 },
   { name: "Merlot", price: 6.5 },
+  { name: "Jasmin Tee", price: 3.9 },
+  { name: "Grüntee", price: 3.9 },
 ];
 
 
@@ -384,7 +386,8 @@ const App = () => {
             });
             localStorage.setItem('orders', JSON.stringify(ordersObject));
             console.log('Restored orders from DB to localStorage and state');
-            // setOrderItems(ordersObject);
+            const newOrderItem = JSON.parse(localStorage.getItem("orders")) || {};
+            setOrderItems(newOrderItem);
           }
         })
         .catch(err => {
