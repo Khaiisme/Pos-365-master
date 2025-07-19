@@ -28,24 +28,24 @@ const dishes = [
   { name: "D4.Chuoi chien", price: 7.5 },
 
 
-  { name: "1a.Kokossupe Tofu", price: 5.5 },
-  { name: "1b.Kokossuppe Hähnchen", price: 6.5 },
-  { name: "1c.Kokossuppe Garnelen", price: 7 },
-  { name: "2a.Misosuppe Tofu", price: 5 },
-  { name: "2b.Misosuppe Lachs", price: 7.5 },
-  { name: "3.Tom Yum Suppe ", price: 7.5 },
-  { name: "4a.Sommerrollen", price: 6.5 },
-  { name: "4b.Sommerrollen", price: 7 },
-  { name: "4c.Sommerrollen", price: 7.5 },
-  { name: "5.Frühlingsrollen", price: 6.9 },
-  { name: "6.Frühlingsrollen Vegan", price: 6.5 },
-  { name: "6a.Gyoza Vegan", price: 6.5 },
-  { name: "6a.Gyoza Hähnchen", price: 6.9 },
+  { name: "01a.Kokossupe Tofu", price: 5.5 },
+  { name: "01b.Kokossuppe Hähnchen", price: 6.5 },
+  { name: "01c.Kokossuppe Garnelen", price: 7 },
+  { name: "02a.Misosuppe Tofu", price: 5 },
+  { name: "02b.Misosuppe Lachs", price: 7.5 },
+  { name: "03.Tom Yum Suppe ", price: 7.5 },
+  { name: "04a.Sommerrollen", price: 6.5 },
+  { name: "04b.Sommerrollen", price: 7 },
+  { name: "04c.Sommerrollen", price: 7.5 },
+  { name: "05.Frühlingsrollen", price: 6.9 },
+  { name: "06.Frühlingsrollen Vegan", price: 6.5 },
+  { name: "06.Gyoza Vegan", price: 6.5 },
+  { name: "06.Gyoza Hähnchen", price: 6.9 },
 
-  { name: "7a.Ha Cao ", price: 7.5 },
-  { name: "7b.Ha Cao ", price: 8.5 },
-  { name: "8.Ca Vien Chien", price: 7.5 },
-  { name: "9.Ebi Tempura", price: 7.5 },
+  { name: "07a.Ha Cao ", price: 7.5 },
+  { name: "07b.Ha Cao ", price: 8.5 },
+  { name: "08.Ca Vien Chien", price: 7.5 },
+  { name: "09.Ebi Tempura", price: 7.5 },
   { name: "10.Tom Chien Com", price: 8.5 },
   { name: "11.Chichken Tempura", price: 7.9 },
   { name: "12.Yakitori", price: 7.5 },
@@ -401,7 +401,7 @@ const App = () => {
     fetchOrders();
 
     // Polling every 10 seconds
-    const interval = setInterval(fetchOrders, 10000);
+    const interval = setInterval(fetchOrders, 200000);
 
     // Cleanup on unmount
     return () => clearInterval(interval);

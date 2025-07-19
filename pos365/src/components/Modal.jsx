@@ -119,13 +119,13 @@ const Modal = ({
       orders
     }));
     fetch('https://asianloopserver.onrender.com/api/orders', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  })
-    .then(res => res.json())
-    .then(data => console.log("Synced to DB:", data))
-    .catch(err => console.error("Error syncing orders:", err));
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(res => res.json())
+      .then(data => console.log("Synced to DB:", data))
+      .catch(err => console.error("Error syncing orders:", err));
     // Clear order items in state
     setOrderItems([]);
     setNote("");
@@ -215,12 +215,13 @@ const Modal = ({
           {/* Note Box */}
           <div>
             <textarea
+              ref={textareaRef}
               value={note}
-              onChange={(e) => setNote(e.target.value)} // Update the note as the user types
-              rows="1" // Only 1 line
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 resize-none"
+              onChange={(e) => setNote(e.target.value)}
+              rows={1}
+              className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 resize-none overflow-hidden"
               placeholder="Write your note here..."
-            ></textarea>
+            />
           </div>
 
           {/* Order Items */}
