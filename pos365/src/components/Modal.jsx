@@ -155,6 +155,7 @@ const Modal = ({
       localStorage.setItem("notes", JSON.stringify(storedNotes));
     }
   }, [note, tableName]);
+  const textareaRef = useRef(null);
    useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
