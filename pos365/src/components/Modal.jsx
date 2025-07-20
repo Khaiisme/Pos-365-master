@@ -156,7 +156,7 @@ const Modal = ({
     }
   }, [note, tableName]);
   const textareaRef = useRef(null);
-   useEffect(() => {
+  useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = 'auto'; // Reset height
@@ -234,35 +234,64 @@ const Modal = ({
 
           {/* Order Items */}
           <div className="mt-2 p-1 border border-gray-300 rounded-lg shadow-lg bg-white">
-            {Object.entries(orderItems).map((item, index) => (
-              <div
-                key={index}
-                className="flex justify-between items-center px-2 py-1 border-b last:border-0 hover:bg-gray-100"
-              >
-                {/* Left: Checkbox + Item name */}
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={!!checkedItems[index]}
-                    onChange={() => toggleChecked(index)}
-                    className="w-4 h-4"
-                  />
-                  <span className="font-semibold text-xl">{item.name}</span>
-                </div>
+            {Array.isArray(orderItems)
+              ? orderItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center px-2 py-1 border-b last:border-0 hover:bg-gray-100"
+                >
+                  {/* Left: Checkbox + Item name */}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={!!checkedItems[index]}
+                      onChange={() => toggleChecked(index)}
+                      className="w-4 h-4"
+                    />
+                    <span className="font-semibold text-xl">{item.name}</span>
+                  </div>
 
-                {/* Right: Price + Remove button */}
-                <div className="flex items-center space-x-0">
-                  <span className="text-xl text-black mr-1 ">{item.price}€</span>
-                  <span
-                    onClick={() => removeOrderItem(index)}
-                    className="text-gray-700 text-xl p-0 leading-none "
-                    style={{ background: 'none', border: 'none' }}
-                  >
-                    ✕
-                  </span>
+                  {/* Right: Price + Remove button */}
+                  <div className="flex items-center space-x-0">
+                    <span className="text-xl text-black mr-1 ">{item.price}€</span>
+                    <span
+                      onClick={() => removeOrderItem(index)}
+                      className="text-gray-700 text-xl p-0 leading-none "
+                      style={{ background: 'none', border: 'none' }}
+                    >
+                      ✕
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )) : Object.entries(orderItems).map((item, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center px-2 py-1 border-b last:border-0 hover:bg-gray-100"
+                >
+                  {/* Left: Checkbox + Item name */}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={!!checkedItems[index]}
+                      onChange={() => toggleChecked(index)}
+                      className="w-4 h-4"
+                    />
+                    <span className="font-semibold text-xl">{item.name}</span>
+                  </div>
+
+                  {/* Right: Price + Remove button */}
+                  <div className="flex items-center space-x-0">
+                    <span className="text-xl text-black mr-1 ">{item.price}€</span>
+                    <span
+                      onClick={() => removeOrderItem(index)}
+                      className="text-gray-700 text-xl p-0 leading-none "
+                      style={{ background: 'none', border: 'none' }}
+                    >
+                      ✕
+                    </span>
+                  </div>
+                </div>
+              ))}
 
 
 
