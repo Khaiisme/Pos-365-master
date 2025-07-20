@@ -410,7 +410,6 @@ const App = () => {
     }
 
 
-    return () => clearInterval(interval);
   }, [isModalOpen]); // Re-run effect when modal opens/closes
 
 
