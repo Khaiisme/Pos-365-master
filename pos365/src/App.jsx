@@ -376,7 +376,10 @@ const App = () => {
   // 1. Fetch orders from backend when component mounts (page loads)
   useEffect(() => {
     const fetchOrders = () => {
-      if (isModalOpen) return; // Don't fetch when modal is open
+      if (!isModalOpen) {
+        const interval = setInterval(fetchOrders, 5000);
+        return () => clearInterval(interval);
+      } // Don't fetch when modal is open
 
       fetch('https://asianloopserver.onrender.com/api/orders')
         .then(res => res.json())
