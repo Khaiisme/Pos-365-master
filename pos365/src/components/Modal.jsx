@@ -234,7 +234,7 @@ const Modal = ({
 
           {/* Order Items */}
           <div className="mt-2 p-1 border border-gray-300 rounded-lg shadow-lg bg-white">
-            {orderItems.map((item, index) => (
+            {Object.entries(orderItems).map((item, index) => (
               <div
                 key={index}
                 className="flex justify-between items-center px-2 py-1 border-b last:border-0 hover:bg-gray-100"
