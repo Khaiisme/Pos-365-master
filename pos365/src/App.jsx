@@ -404,7 +404,7 @@ const App = () => {
 
     fetchOrders(); // Initial fetch
 
-    const interval = setInterval(fetchOrders, 5000);
+    const interval = setInterval(fetchOrders, 15000);
 
     return () => clearInterval(interval);
   }, [isModalOpen]); // Re-run effect when modal opens/closes
