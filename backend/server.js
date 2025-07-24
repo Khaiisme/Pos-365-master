@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const Order = require('./Order');
 const app = express();
-
+const Note = require('./Note');
 
 // Middleware to handle CORS and JSON parsing
 app.use(cors({
