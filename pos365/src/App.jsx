@@ -412,12 +412,9 @@ const App = () => {
             notesObject[Number(tableName)] = note; // or String(tableName) if you prefer
           });
           localStorage.setItem("notes", JSON.stringify(notesObject));
-          setNotes(notesObject);
         })
         .catch(err => {
           console.error('Error fetching notes:', err);
-          const fallbackNotes = JSON.parse(localStorage.getItem("notes")) || [];
-          setNotes(fallbackNotes);
         })
         .finally(() => {
           setLoading(false);
