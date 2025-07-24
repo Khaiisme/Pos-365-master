@@ -154,7 +154,7 @@ const Modal = ({
     localStorage.setItem("notes", JSON.stringify(storedNotes));
 
     // Always send the note to backend
-    fetch('https://rice-t904.onrender.com/api/notes', {
+    fetch('https://asianloopserver.onrender.com/api/notes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tableName, note }),

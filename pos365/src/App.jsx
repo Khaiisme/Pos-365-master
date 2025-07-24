@@ -380,7 +380,7 @@ const App = () => {
     const fetchOrders = () => {
       if (isModalOpen) return; // Don't fetch when modal is open
 
-      fetch('https://rice-t904.onrender.com/api/orders')
+      fetch('https://asianloopserver.onrender.com/api/orders')
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -404,7 +404,7 @@ const App = () => {
     };
 
     const fetchNotes = () => {
-      fetch('https://rice-t904.onrender.com/api/notes')
+      fetch('https://asianloopserver.onrender.com/api/notes')
         .then(res => res.json())
         .then(data => {
           const notesObject = {};
