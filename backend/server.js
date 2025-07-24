@@ -52,6 +52,32 @@ app.get('/api/orders', async ( req , res) => {
   }
 });
 
+app.post('/api/notes', async (req, res) => {
+  try {
+    const { tableName, note } = req.body;
+    console.log("Received note for table:", tableName, "Note:", note);
+     // Create and save the note
+    const newNote = new Note({ tableName, note });
+    await newNote.save();
+
+    res.status(201).json({ message: 'Note saved successfully.', note: newNote });
+  } catch (error) {
+    console.error("Error saving note:", error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+app.get('/api/notes', async (req, res) => {
+  try {
+    const notes = await Note.find();
+    res.status(200).json(notes);
+  } catch (error) {
+    console.error("Error fetching notes:", error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+
 app.get('/health', async (req, res) => {
   const isConnected = mongoose.connection.readyState === 1; // 1 = connected
 

@@ -98,71 +98,89 @@ const Modal = ({
   };
   let totalSales = parseFloat(localStorage.getItem("totalSales")) || 0; // Load from storage or set to 0
   // Handle the "Pay" button click
-  const handlePay = () => {
-    if (!tableName) {
-      console.error("Table name is undefined!");
-      return;
-    }
+  // const handlePay = () => {
+  //   if (!tableName) {
+  //     console.error("Table name is undefined!");
+  //     return;
+  //   }
 
-    // Retrieve current orders from localStorage
-    const storedOrders = JSON.parse(localStorage.getItem("orders")) || {};
-    const storedNotes = JSON.parse(localStorage.getItem("notes")) || {};
-    // Remove the specific table's order
-    delete storedOrders[tableName];
-    delete storedNotes[tableName];
-    // Save updated orders back to localStorage
-    localStorage.setItem("orders", JSON.stringify(storedOrders));
-    localStorage.setItem("notes", JSON.stringify(storedNotes));
-    ////////////////////
-    const payload = Object.entries(storedOrders).map(([table, orders]) => ({
-      table,
-      orders
-    }));
-    fetch('https://asianloopserver.onrender.com/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-      .then(res => res.json())
-      .then(data => console.log("Synced to DB:", data))
-      .catch(err => console.error("Error syncing orders:", err));
-    // Clear order items in state
-    setOrderItems([]);
-    setNote("");
+  //   // Retrieve current orders from localStorage
+  //   const storedOrders = JSON.parse(localStorage.getItem("orders")) || {};
+  //   const storedNotes = JSON.parse(localStorage.getItem("notes")) || {};
+  //   // Remove the specific table's order
+  //   delete storedOrders[tableName];
+  //   delete storedNotes[tableName];
+  //   // Save updated orders back to localStorage
+  //   localStorage.setItem("orders", JSON.stringify(storedOrders));
+  //   localStorage.setItem("notes", JSON.stringify(storedNotes));
+  //   ////////////////////
+  //   const payload = Object.entries(storedOrders).map(([table, orders]) => ({
+  //     table,
+  //     orders
+  //   }));
+  //   fetch('https://asianloopserver.onrender.com/api/orders', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify(payload)
+  //   })
+  //     .then(res => res.json())
+  //     .then(data => console.log("Synced to DB:", data))
+  //     .catch(err => console.error("Error syncing orders:", err));
+  //   // Clear order items in state
+  //   setOrderItems([]);
+  //   setNote("");
 
-    // Close the modal
-    onClose();
-  };
+  //   // Close the modal
+  //   onClose();
+  // };
 
   // Retrieve the stored note for this specific table from localStorage or use an empty string if no note is found
-
 
   useEffect(() => {
     if (tableName) {
       const storedNotes = JSON.parse(localStorage.getItem("notes")) || {};
+      console.log("Stored notes:", storedNotes);
       setNote(storedNotes[tableName] || ""); // Load the note for the selected table
     }
-  }, [tableName]); // Runs when a new table is opened
+  }, [tableName, isOpen]); // Runs when a new table is opened
 
   useEffect(() => {
-    if (tableName) {
-      const storedNotes = JSON.parse(localStorage.getItem("notes")) || {}; // Get all notes
-      if (note.trim() === "") {
-        delete storedNotes[tableName]; // Remove note if empty
-      } else {
-        storedNotes[tableName] = note; // Save note for the table
-      }
-      localStorage.setItem("notes", JSON.stringify(storedNotes));
-    }
+    if (!tableName) return;
+
+    const storedNotes = JSON.parse(localStorage.getItem("notes")) || {};
+
+    // Always update localStorage
+    storedNotes[tableName] = note;
+    localStorage.setItem("notes", JSON.stringify(storedNotes));
+
+    // Always send the note to backend
+    fetch('https://rice-t904.onrender.com/api/notes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tableName, note }),
+    })
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        console.log('Note saved on backend:', data);
+      })
+      .catch(error => {
+        console.error('Error saving note on backend:', error);
+      });
+
   }, [note, tableName]);
   const textareaRef = useRef(null);
-   useEffect(() => {
+  useEffect(() => {
     const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto'; // Reset height
-      textarea.style.height = `${textarea.scrollHeight}px`; // Set new height
-    }
-  }, [note]);
+    if (!textarea) return;
+
+    requestAnimationFrame(() => {
+      textarea.style.height = 'auto'; // Reset
+      textarea.style.height = `${textarea.scrollHeight}px`; // Apply correct size
+    });
+  }, [note, isOpen]);
 
   return (
     isOpen && (
@@ -280,14 +298,7 @@ const Modal = ({
           </div>
 
           {/* Pay Button */}
-          <div className="bg-gray-600 mt-6">
-            <button
-              onClick={handlePay}
-              className=" text-white bg-black text-4xl py-2 px-4 rounded-xl w-full"
-            >
-              Bezahlen
-            </button>
-          </div>
+
         </div>
       </div>
     )

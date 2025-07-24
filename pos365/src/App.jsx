@@ -269,7 +269,9 @@ const dishes = [
   { name: "Milchkaffe", price: 4.5 },
 
 
-  { name: "Flasche Wasser", price: 7.5 },
+  { name: "Flasche Wasser Still", price: 7.5 },
+  { name: "Flasche Mineralwasser", price: 7.5 },
+  
 
   { name: "Wasser Still", price: 4.5 },
   { name: "Mineralwasser", price: 4.5 },
@@ -378,7 +380,7 @@ const App = () => {
     const fetchOrders = () => {
       if (isModalOpen) return; // Don't fetch when modal is open
 
-      fetch('https://asianloopserver.onrender.com/api/orders')
+      fetch('https://rice-t904.onrender.com/api/orders')
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -387,7 +389,6 @@ const App = () => {
               ordersObject[table] = orders;
             });
             localStorage.setItem('orders', JSON.stringify(ordersObject));
-            console.log('Restored orders from DB to localStorage and state');
             const newOrderItem = JSON.parse(localStorage.getItem("orders")) || {};
             setOrderItems(newOrderItem);
           }
@@ -402,13 +403,37 @@ const App = () => {
         });
     };
 
+    const fetchNotes = () => {
+      fetch('https://rice-t904.onrender.com/api/notes')
+        .then(res => res.json())
+        .then(data => {
+          const notesObject = {};
+          data.forEach(({ tableName, note }) => {
+            notesObject[Number(tableName)] = note; // or String(tableName) if you prefer
+          });
+          localStorage.setItem("notes", JSON.stringify(notesObject));
+          setNotes(notesObject);
+        })
+        .catch(err => {
+          console.error('Error fetching notes:', err);
+          const fallbackNotes = JSON.parse(localStorage.getItem("notes")) || [];
+          setNotes(fallbackNotes);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    };// Fetch notes from backend
+    fetchNotes(); // Initial fetch for notes
     fetchOrders(); // Initial fetch
 
     if (!isModalOpen) {
-      const interval = setInterval(fetchOrders, 10000);
+      const interval = setInterval(() => {
+        fetchOrders();
+        fetchNotes();
+      }, 10000);
+
       return () => clearInterval(interval);
     }
-
 
   }, [isModalOpen]); // Re-run effect when modal opens/closes
 
