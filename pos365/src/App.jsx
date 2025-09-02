@@ -13,7 +13,7 @@ const dishes = [
   { name: "M6", price: 10.5 },
   { name: "M7", price: 10.9 },
   { name: "M8a.Mit Tofu", price: 10.5 },
-  { name: "M8b.Mit Tofu", price: 11.9 },
+  { name: "M8b.Mit Hänchen", price: 11.9 },
   { name: "M9", price: 11.9 },
   { name: "Kinder Menu 1", price: 8 },
   { name: "Kinder Menu 2", price: 9 },
@@ -39,8 +39,8 @@ const dishes = [
   { name: "04c.Sommerrollen", price: 7.5 },
   { name: "05.Frühlingsrollen", price: 6.9 },
   { name: "06.Frühlingsrollen Vegan", price: 6.5 },
-  { name: "06.Gyoza Vegan", price: 6.5 },
-  { name: "06.Gyoza Hähnchen", price: 6.9 },
+  { name: "06a.Gyoza Vegan", price: 6.5 },
+  { name: "06a.Gyoza Hähnchen", price: 6.9 },
 
   { name: "07a.Ha Cao ", price: 7.5 },
   { name: "07b.Ha Cao ", price: 8.5 },
@@ -346,8 +346,9 @@ const dishes = [
   { name: "Flasche Grauburgrunder", price: 23.5 },
   { name: "Flasche Merlot", price: 20 },
   { name: "Merlot", price: 6.5 },
-  { name: "Jasmin Tee", price: 3.9 },
-  { name: "Grüntee", price: 3.9 },
+  { name: "Jasmin Tee", price: 3.2 },
+  { name: "Gruntee", price: 3.2 },
+  { name: "Schwarz Tee", price: 3.2 },
 ];
 
 
