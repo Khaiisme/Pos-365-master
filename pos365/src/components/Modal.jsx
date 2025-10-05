@@ -182,6 +182,46 @@ const Modal = ({
     });
   }, [note, isOpen]);
 
+  const handlePrintKitchenReceipt = async () => {
+    if (!window.qz) {
+      alert("QZ Tray not loaded. Please check your setup.");
+      return;
+    }
+
+    try {
+      await window.qz.websocket.connect();
+
+      // Find your printer name (replace with your real printer name)
+      const printer = await window.qz.printers.find("POS-80C");
+      const config = window.qz.configs.create(printer);
+
+      // Format your receipt text
+      const lines = [
+        "\x1B\x40", // Initialize printer
+        "\x1B\x61\x01", // Center align
+        "*** KITCHEN ORDER ***\n",
+        "\x1B\x61\x00", // Left align
+        `Table: ${tableName}\n`,
+        "--------------------------------\n",
+        ...orderItems.map((item) => `${item.name}  x${item.qty || 1}\n`),
+        "--------------------------------\n",
+        note ? `Note: ${note}\n` : "",
+        "\n\n",
+        "\x1D\x56\x42\x00", // Full cut
+      ];
+
+      // Send print job
+      await window.qz.print(config, lines);
+      alert("Kitchen receipt printed!");
+    } catch (err) {
+      console.error("Print error:", err);
+      alert("Failed to print: " + err.message);
+    } finally {
+      window.qz.websocket.disconnect();
+    }
+  };
+
+
   return (
     isOpen && (
       <div className="text-xl fixed inset-0 bg-gray-400 bg-opacity-50 flex justify-center items-center z-50">
@@ -298,7 +338,14 @@ const Modal = ({
           </div>
 
           {/* Pay Button */}
-
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={handlePrintKitchenReceipt}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg text-xl"
+            >
+              Print 
+            </button>
+          </div>
         </div>
       </div>
     )
