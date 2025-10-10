@@ -187,47 +187,60 @@ const Modal = ({
     return new Promise(resolver);
   });
 
+const handlePrintKitchenReceipt = async () => {
+  const printerIP = "192.168.2.1"; // 🔸 Change this to your printer’s IP address
+  const printerID = "local_printer"; // Usually fine as-is
 
-  const handlePrintKitchenReceipt = async () => {
-    if (!qz) {
-      alert("QZ Tray not loaded. Please check your setup.");
-      return;
-    }
+  try {
+    const ePosDev = new window.epson.ePOSDevice();
 
+    // Connect to printer
+    ePosDev.connect(printerIP, 8008, (data) => {
+      if (data === "OK" || data === "SSL_CONNECT_OK") {
+        // Create printer device object
+        ePosDev.createDevice(
+          printerID,
+          ePosDev.DEVICE_TYPE_PRINTER,
+          { crypto: false, buffer: false },
+          (devobj, retcode) => {
+            if (retcode === "OK") {
+              const printer = devobj;
 
-    try {
-      await window.qz.websocket.connect();
+              // Format receipt
+              printer.addTextAlign(printer.ALIGN_CENTER);
+              printer.addText("*** KITCHEN ORDER ***\n");
+              printer.addTextAlign(printer.ALIGN_LEFT);
+              printer.addText(`Table: ${tableName}\n`);
+              printer.addText("--------------------------------\n");
 
-      // Find your printer name (replace with your real printer name)
-      const printer = await window.qz.printers.find("POS-80C");
-      const config = window.qz.configs.create(printer);
+              orderItems.forEach((item) => {
+                const qty = item.qty || 1;
+                printer.addText(`${item.name}  x${qty}\n`);
+              });
 
-      // Format your receipt text
-      const lines = [
-        "\x1B\x40", // Initialize printer
-        "\x1B\x61\x01", // Center align
-        "*** KITCHEN ORDER ***\n",
-        "\x1B\x61\x00", // Left align
-        `Table: ${tableName}\n`,
-        "--------------------------------\n",
-        ...orderItems.map((item) => `${item.name}  x${item.qty || 1}\n`),
-        "--------------------------------\n",
-        note ? `Note: ${note}\n` : "",
-        "\n\n",
-        "\x1D\x56\x42\x00", // Full cut
-      ];
+              printer.addText("--------------------------------\n");
+              if (note) printer.addText(`Note: ${note}\n`);
+              printer.addFeedLine(2);
+              printer.addCut(printer.CUT_FEED);
 
-      // Send print job
-      await window.qz.print(config, lines);
-      alert("Kitchen receipt printed!");
-    } catch (err) {
-      console.error("Print error:", err);
-      alert("Failed to print: " + err.message);
-    } finally {
-      window.qz.websocket.disconnect();
-    }
-  };
+              // Send to printer
+              printer.send();
 
+              alert("Kitchen receipt printed!");
+            } else {
+              alert("Failed to create printer object: " + retcode);
+            }
+          }
+        );
+      } else {
+        alert("Failed to connect to printer: " + data);
+      }
+    });
+  } catch (err) {
+    console.error("EPOS error:", err);
+    alert("Print failed: " + err.message);
+  }
+};
 
   return (
     isOpen && (
@@ -346,9 +359,9 @@ const Modal = ({
 
           {/* Pay Button */}
           <div className="mt-4 flex justify-center">
-        <button onClick={handlePrintKitchenReceipt} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mr-2">
+        <p onClick={handlePrintKitchenReceipt} className="text-sm">
           Print 
-        </button>
+        </p>
           </div>
         </div>
       </div>

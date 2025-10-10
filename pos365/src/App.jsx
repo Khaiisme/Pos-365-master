@@ -271,7 +271,7 @@ const dishes = [
 
   { name: "Flasche Wasser Still", price: 7.5 },
   { name: "Flasche Mineralwasser", price: 7.5 },
-  
+
 
   { name: "Wasser Still", price: 4.5 },
   { name: "Mineralwasser", price: 4.5 },
@@ -447,6 +447,8 @@ const App = () => {
 
 
   useEffect(() => {
+    if (!isOpen) return; // only run when modal is open
+
     const checkBackend = async () => {
       try {
         const res = await fetch('https://asianloopserver.onrender.com/health');
@@ -469,7 +471,8 @@ const App = () => {
     const interval = setInterval(checkBackend, 5000); // check every 5s
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isOpen]); // 👈 runs whenever modal opens or closes
+
 
   if (loading) {
     return <div className="mt-15 ml-30 text-4xl text-center">Loading...</div>; // You can replace this with a spinner or fancy UI
