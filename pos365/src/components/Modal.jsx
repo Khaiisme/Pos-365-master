@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import React from "react";
-import qz from "qz-tray";
+
 
 const Modal = ({
   isOpen,
@@ -357,7 +357,6 @@ const handlePrintKitchenReceipt = async () => {
             Insgesamt:<span className="text-2xl ml-20">{calculateTotal()}€</span>
           </div>
 
-          {/* Pay Button */}
           <div className="mt-4 flex justify-center">
         <p onClick={handlePrintKitchenReceipt} className="text-sm">
           Print 

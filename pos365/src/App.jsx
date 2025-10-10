@@ -478,9 +478,9 @@ const App = () => {
     return <div className="mt-15 ml-30 text-4xl text-center">Loading...</div>; // You can replace this with a spinner or fancy UI
   }
 
-
-
-
+window.addEventListener('load', () => {
+  console.log(window.epson); // should no longer be undefined
+});
 
 
 
