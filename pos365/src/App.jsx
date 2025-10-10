@@ -447,7 +447,7 @@ const App = () => {
 
 
   useEffect(() => {
-    if (!isOpen) return; // only run when modal is open
+    if (!isModalOpen) return; // only run when modal is open
 
     const checkBackend = async () => {
       try {
@@ -471,7 +471,7 @@ const App = () => {
     const interval = setInterval(checkBackend, 5000); // check every 5s
 
     return () => clearInterval(interval);
-  }, [isOpen]); // 👈 runs whenever modal opens or closes
+  }, [isModalOpen]); // 👈 runs whenever modal opens or closes
 
 
   if (loading) {
