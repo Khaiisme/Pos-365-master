@@ -346,7 +346,9 @@ const Modal = ({
 
           {/* Pay Button */}
           <div className="mt-4 flex justify-center">
-        
+        <button onClick={handlePrintKitchenReceipt} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mr-2">
+          Print 
+        </button>
           </div>
         </div>
       </div>
