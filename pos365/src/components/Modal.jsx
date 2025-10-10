@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import React from "react";
+import qz from "qz-tray";
 
 const Modal = ({
   isOpen,
@@ -181,6 +182,11 @@ const Modal = ({
       textarea.style.height = `${textarea.scrollHeight}px`; // Apply correct size
     });
   }, [note, isOpen]);
+
+  qz.api.setPromiseType(function promise(resolver) {
+  return new Promise(resolver);
+});
+
 
   const handlePrintKitchenReceipt = async () => {
     if (!window.qz) {
