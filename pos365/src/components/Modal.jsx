@@ -183,10 +183,6 @@ const Modal = ({
     });
   }, [note, isOpen]);
 
-  qz.api.setPromiseType(function promise(resolver) {
-    return new Promise(resolver);
-  });
-
 const handlePrintKitchenReceipt = async () => {
   const printerIP = "192.168.2.1"; // 🔸 Change this to your printer’s IP address
   const printerID = "local_printer"; // Usually fine as-is
