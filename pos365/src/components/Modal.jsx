@@ -184,15 +184,16 @@ const Modal = ({
   }, [note, isOpen]);
 
   qz.api.setPromiseType(function promise(resolver) {
-  return new Promise(resolver);
-});
+    return new Promise(resolver);
+  });
 
 
   const handlePrintKitchenReceipt = async () => {
-    if (!window.qz) {
+    if (!qz) {
       alert("QZ Tray not loaded. Please check your setup.");
       return;
     }
+
 
     try {
       await window.qz.websocket.connect();
@@ -349,7 +350,7 @@ const Modal = ({
               onClick={handlePrintKitchenReceipt}
               className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg text-xl"
             >
-              Print 
+              Print
             </button>
           </div>
         </div>
