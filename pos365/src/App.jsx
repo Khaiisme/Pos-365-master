@@ -386,6 +386,9 @@ const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTable, setCurrentTable] = useState(null);
   const [loading, setLoading] = useState(true); // Loading state
+  const [showModal, setShowModal] = useState(false);
+  const [firstTable, setFirstTable] = useState("");
+  const [secondTable, setSecondTable] = useState("");
   // Retrieve orders from the backend 
   // 1. Fetch orders from backend when component mounts (page loads)
   useEffect(() => {
@@ -554,9 +557,7 @@ const App = () => {
     window.location.reload();
 
   };
-  const [showModal, setShowModal] = useState(false);
-  const [firstTable, setFirstTable] = useState("");
-  const [secondTable, setSecondTable] = useState("");
+  
 
   const switchTables = () => {
     if (!firstTable || !secondTable) return;
