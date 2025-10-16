@@ -3,8 +3,7 @@ import Table from "./components/Table";
 import Modal from "./components/Modal";
 import { FiRotateCcw } from 'react-icons/fi';
 // Sample dish data (name and price)
-import { ChevronsLeftRightEllipsis } from "lucide-react"; // icon
-import { ArrowLeftRight } from "lucide-react";
+import { FiRepeat } from "react-icons/fi";
 const dishes = [
   { name: "M1", price: 11.9 },
   { name: "M2a.Mit Tofu", price: 10.9 },
@@ -619,7 +618,7 @@ const App = () => {
         onClick={() => setShowModal(true)}
         className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow"
       >
-        <ArrowLeftRight className="w-5 h-5" />
+        <FiRepeat className="w-5 h-5" />
         Switch Tables
       </button>
 
