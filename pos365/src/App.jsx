@@ -3,17 +3,8 @@ import Table from "./components/Table";
 import Modal from "./components/Modal";
 import { FiRotateCcw } from 'react-icons/fi';
 // Sample dish data (name and price)
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { ArrowLeftRight } from "lucide-react"; 
+import { ChevronsLeftRightEllipsis } from "lucide-react"; // icon
+import { ArrowLeftRight } from "lucide-react";
 const dishes = [
   { name: "M1", price: 11.9 },
   { name: "M2a.Mit Tofu", price: 10.9 },
@@ -564,15 +555,15 @@ const App = () => {
     window.location.reload();
 
   };
+  const [showModal, setShowModal] = useState(false);
   const [firstTable, setFirstTable] = useState("");
   const [secondTable, setSecondTable] = useState("");
 
-  // swap logic
-  const switchTableOrders = () => {
+  const switchTables = () => {
     if (!firstTable || !secondTable) return;
 
-    setOrderItems((prevOrders) => {
-      const newOrders = { ...prevOrders };
+    setOrderItems((prev) => {
+      const newOrders = { ...prev };
       [newOrders[firstTable], newOrders[secondTable]] = [
         newOrders[secondTable],
         newOrders[firstTable],
@@ -581,8 +572,10 @@ const App = () => {
       return newOrders;
     });
 
+    // reset + close modal
     setFirstTable("");
     setSecondTable("");
+    setShowModal(false);
   };
   return (
     <div className="w-full overflow-y-auto bg-white text-black flex flex-col items-center p-15">
@@ -622,51 +615,62 @@ const App = () => {
         dishes={dishes}
       />
 
-       <Dialog>
-      {/* trigger button with icon */}
-      <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2">
-          <ArrowLeftRight className="w-5 h-5" />
-          Switch Tables
-        </Button>
-      </DialogTrigger>
+      <button
+        onClick={() => setShowModal(true)}
+        className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow"
+      >
+        <ArrowLeftRight className="w-5 h-5" />
+        Switch Tables
+      </button>
 
-      {/* modal content */}
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Switch Table Orders</DialogTitle>
-        </DialogHeader>
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-80">
+            <h2 className="text-lg font-semibold mb-4 text-center">
+              Switch Table Orders
+            </h2>
 
-        <div className="flex flex-col gap-3 py-2">
-          <Input
-            type="number"
-            placeholder="Enter first table number"
-            value={firstTable}
-            onChange={(e) => setFirstTable(e.target.value)}
-          />
-          <Input
-            type="number"
-            placeholder="Enter second table number"
-            value={secondTable}
-            onChange={(e) => setSecondTable(e.target.value)}
-          />
+            <div className="flex flex-col gap-3 mb-4">
+              <input
+                type="number"
+                placeholder="First table number"
+                value={firstTable}
+                onChange={(e) => setFirstTable(e.target.value)}
+                className="border rounded-lg p-2 w-full"
+              />
+              <input
+                type="number"
+                placeholder="Second table number"
+                value={secondTable}
+                onChange={(e) => setSecondTable(e.target.value)}
+                className="border rounded-lg p-2 w-full"
+              />
+            </div>
+
+            <div className="flex justify-between">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={switchTables}
+                disabled={!firstTable || !secondTable}
+                className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
         </div>
-
-        <DialogFooter>
-          <Button
-            onClick={switchTableOrders}
-            disabled={!firstTable || !secondTable}
-          >
-            Confirm Switch
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      )}
     </div>
 
-    
 
-    
+
+
   );
 };
 
