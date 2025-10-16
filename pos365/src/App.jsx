@@ -3,6 +3,17 @@ import Table from "./components/Table";
 import Modal from "./components/Modal";
 import { FiRotateCcw } from 'react-icons/fi';
 // Sample dish data (name and price)
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ArrowLeftRight } from "lucide-react"; 
 const dishes = [
   { name: "M1", price: 11.9 },
   { name: "M2a.Mit Tofu", price: 10.9 },
@@ -478,9 +489,6 @@ const App = () => {
     return <div className="mt-15 ml-30 text-4xl text-center">Loading...</div>; // You can replace this with a spinner or fancy UI
   }
 
-window.addEventListener('load', () => {
-  console.log(window.epson); // should no longer be undefined
-});
 
 
 
@@ -556,6 +564,26 @@ window.addEventListener('load', () => {
     window.location.reload();
 
   };
+  const [firstTable, setFirstTable] = useState("");
+  const [secondTable, setSecondTable] = useState("");
+
+  // swap logic
+  const switchTableOrders = () => {
+    if (!firstTable || !secondTable) return;
+
+    setOrderItems((prevOrders) => {
+      const newOrders = { ...prevOrders };
+      [newOrders[firstTable], newOrders[secondTable]] = [
+        newOrders[secondTable],
+        newOrders[firstTable],
+      ];
+      localStorage.setItem("orders", JSON.stringify(newOrders));
+      return newOrders;
+    });
+
+    setFirstTable("");
+    setSecondTable("");
+  };
   return (
     <div className="w-full overflow-y-auto bg-white text-black flex flex-col items-center p-15">
       <h1 className="text-3xl text-green-300 font-bold mb-3">Asian Loop</h1>
@@ -593,7 +621,52 @@ window.addEventListener('load', () => {
         removeOrderItem={removeOrderItem}
         dishes={dishes}
       />
+
+       <Dialog>
+      {/* trigger button with icon */}
+      <DialogTrigger asChild>
+        <Button variant="outline" className="flex items-center gap-2">
+          <ArrowLeftRight className="w-5 h-5" />
+          Switch Tables
+        </Button>
+      </DialogTrigger>
+
+      {/* modal content */}
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Switch Table Orders</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-3 py-2">
+          <Input
+            type="number"
+            placeholder="Enter first table number"
+            value={firstTable}
+            onChange={(e) => setFirstTable(e.target.value)}
+          />
+          <Input
+            type="number"
+            placeholder="Enter second table number"
+            value={secondTable}
+            onChange={(e) => setSecondTable(e.target.value)}
+          />
+        </div>
+
+        <DialogFooter>
+          <Button
+            onClick={switchTableOrders}
+            disabled={!firstTable || !secondTable}
+          >
+            Confirm Switch
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </div>
+
+    
+
+    
   );
 };
 

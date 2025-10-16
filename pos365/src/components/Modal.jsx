@@ -183,60 +183,6 @@ const Modal = ({
     });
   }, [note, isOpen]);
 
-const handlePrintKitchenReceipt = async () => {
-  const printerIP = "192.168.2.1"; // 🔸 Change this to your printer’s IP address
-  const printerID = "local_printer"; // Usually fine as-is
-
-  try {
-    const ePosDev = new window.epson.ePOSDevice();
-
-    // Connect to printer
-    ePosDev.connect(printerIP, 8008, (data) => {
-      if (data === "OK" || data === "SSL_CONNECT_OK") {
-        // Create printer device object
-        ePosDev.createDevice(
-          printerID,
-          ePosDev.DEVICE_TYPE_PRINTER,
-          { crypto: false, buffer: false },
-          (devobj, retcode) => {
-            if (retcode === "OK") {
-              const printer = devobj;
-
-              // Format receipt
-              printer.addTextAlign(printer.ALIGN_CENTER);
-              printer.addText("*** KITCHEN ORDER ***\n");
-              printer.addTextAlign(printer.ALIGN_LEFT);
-              printer.addText(`Table: ${tableName}\n`);
-              printer.addText("--------------------------------\n");
-
-              orderItems.forEach((item) => {
-                const qty = item.qty || 1;
-                printer.addText(`${item.name}  x${qty}\n`);
-              });
-
-              printer.addText("--------------------------------\n");
-              if (note) printer.addText(`Note: ${note}\n`);
-              printer.addFeedLine(2);
-              printer.addCut(printer.CUT_FEED);
-
-              // Send to printer
-              printer.send();
-
-              alert("Kitchen receipt printed!");
-            } else {
-              alert("Failed to create printer object: " + retcode);
-            }
-          }
-        );
-      } else {
-        alert("Failed to connect to printer: " + data);
-      }
-    });
-  } catch (err) {
-    console.error("EPOS error:", err);
-    alert("Print failed: " + err.message);
-  }
-};
 
   return (
     isOpen && (
