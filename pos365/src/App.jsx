@@ -491,9 +491,11 @@ const App = () => {
     setOrderItems(updatedOrderItems);
     localStorage.setItem("orders", JSON.stringify(updatedOrders));
 
-    setLoading(true);
 
-    const payload = [{ table: currentTable, orders: updatedOrderItems }];
+    const payload = Object.entries(updatedOrders).map(([table, orders]) => ({
+      table,
+      orders,
+    }));
 
     // 🕒 helper for timeout
     const fetchWithTimeout = (url, options, timeout = 7000) =>
@@ -551,12 +553,10 @@ const App = () => {
     localStorage.setItem("orders", JSON.stringify(updatedOrders));
 
     // 🌀 Prepare payload (only current table)
-    const payload = [
-      {
-        table: currentTable,
-        orders: updatedOrderItems,
-      },
-    ];
+    const payload = Object.entries(updatedOrders).map(([table, orders]) => ({
+      table,
+      orders,
+    }));
 
     setLoading(true);
 
@@ -602,7 +602,6 @@ const App = () => {
       }
     }
 
-    setLoading(false);
   };
 
 
@@ -656,7 +655,7 @@ const App = () => {
     // reset + close modal
     setFirstTable("");
     setSecondTable("");
-    setShowSwitchModal(false);
+    setShowModal(false);
   };
 
 
