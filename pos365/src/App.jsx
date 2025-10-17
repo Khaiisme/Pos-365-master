@@ -538,7 +538,6 @@ const App = () => {
       }
     }
 
-    setLoading(false);
   };
 
 
@@ -558,7 +557,7 @@ const App = () => {
       orders,
     }));
 
-    setLoading(true);
+
 
     // Helper: fetch with timeout
     const fetchWithTimeout = (url, options, timeout = 7000) =>

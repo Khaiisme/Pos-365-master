@@ -274,8 +274,11 @@ const Modal = ({
                 <div className="flex items-center space-x-0">
                   <span className="text-xl text-black mr-1 ">{item.price}€</span>
                   <span
-                    onClick={() => removeOrderItem(index)}
-                    className="text-gray-700 text-xl p-0 leading-none "
+                    onClick={() => {
+                      removeOrderItem(index);
+                      setNote("");
+                    }}
+                    className="text-gray-700 text-xl p-0 leading-none cursor-pointer"
                     style={{ background: 'none', border: 'none' }}
                   >
                     ✕
@@ -299,7 +302,7 @@ const Modal = ({
             Insgesamt:<span className="text-2xl ml-20">{calculateTotal()}€</span>
           </div>
 
-          
+
         </div>
       </div>
     )
