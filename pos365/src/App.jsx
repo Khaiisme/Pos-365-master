@@ -558,7 +558,7 @@ const App = () => {
       },
     ];
 
-    setIsSyncing(true);
+    setLoading(true);
 
     // Helper: fetch with timeout
     const fetchWithTimeout = (url, options, timeout = 7000) =>
@@ -602,7 +602,7 @@ const App = () => {
       }
     }
 
-    setIsSyncing(false);
+    setLoading(false);
   };
 
 
@@ -624,24 +624,23 @@ const App = () => {
     setOrderItems((prev) => {
       const newOrders = { ...prev };
 
-      // 🔁 Swap the orders
+      // Swap orders
       [newOrders[firstTable], newOrders[secondTable]] = [
         newOrders[secondTable],
         newOrders[firstTable],
       ];
 
-      // 💾 Save to localStorage
+      // Save to localStorage
       localStorage.setItem("orders", JSON.stringify(newOrders));
 
-      // 🧱 Prepare payload (only the two swapped tables)
-      const payload = [firstTable, secondTable].map((table) => ({
+      // 🔥 Sync to MongoDB backend
+      const payload = Object.entries(newOrders).map(([table, orders]) => ({
         table,
-        orders: newOrders[table],
+        orders,
       }));
 
       console.log("Payload to sync:", payload);
 
-      // 🌐 Sync to MongoDB backend
       fetch("https://asianloopserver.onrender.com/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -657,8 +656,9 @@ const App = () => {
     // reset + close modal
     setFirstTable("");
     setSecondTable("");
-    setShowModal(false);
+    setShowSwitchModal(false);
   };
+
 
   return (
     <div className="w-full overflow-y-auto bg-white text-black flex flex-col items-center p-15">
@@ -711,39 +711,39 @@ const App = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-80">
             <h2 className="text-lg font-semibold mb-4 text-center">
-              Đổi bàn
+              Đổi Bàn
             </h2>
 
-            <div className="flex gap-3 mb-4">
+            <div className="flex flex-col gap-3 mb-4">
               <input
                 type="number"
-                placeholder="First table"
+                placeholder="First table number"
                 value={firstTable}
                 onChange={(e) => setFirstTable(e.target.value)}
-                className="border rounded-lg p-2 flex-1"
+                className="border rounded-lg p-2 w-full"
               />
               <input
                 type="number"
-                placeholder="Second table"
+                placeholder="Second table number"
                 value={secondTable}
                 onChange={(e) => setSecondTable(e.target.value)}
-                className="border rounded-lg p-2 flex-1"
+                className="border rounded-lg p-2 w-full"
               />
             </div>
 
             <div className="flex justify-between">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
+                className="px-4 py-2 rounded-lg bg-gray-300 text-white hover:bg-gray-400"
               >
-                Hủy 
+                Cancel
               </button>
               <button
                 onClick={switchTables}
                 disabled={!firstTable || !secondTable}
                 className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50"
               >
-                Xác nhận
+                Confirm
               </button>
             </div>
           </div>
