@@ -450,36 +450,25 @@ const App = () => {
   }, [isModalOpen]); // Re-run effect when modal opens/closes
 
 
-  useEffect(() => {
-    if (!isModalOpen) return; // only run when modal is open
 
-    const checkBackend = async () => {
-      try {
-        const res = await fetch('https://asianloopserver.onrender.com/health');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.db === 'connected') {
-            setLoading(false);
-          } else {
-            setLoading(true);
-          }
-        } else {
-          setLoading(true);
-        }
-      } catch (error) {
-        setLoading(true);
-      }
-    };
+  function Connecting() {
+    const [dots, setDots] = useState("");
 
-    checkBackend(); // check immediately
-    const interval = setInterval(checkBackend, 5000); // check every 5s
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setDots((prev) => (prev.length < 3 ? prev + "." : ""));
+      }, 500); // updates every 0.5s
+      return () => clearInterval(interval);
+    }, []);
 
-    return () => clearInterval(interval);
-  }, [isModalOpen]); // 👈 runs whenever modal opens or closes
-
-
+    return (
+      <div className="mt-15 ml-30 text-4xl text-center">
+        Connecting{dots}
+      </div>
+    );
+  }
   if (loading) {
-    return <div className="mt-15 ml-30 text-4xl text-center">Loading...</div>; // You can replace this with a spinner or fancy UI
+    return <Connecting />;
   }
 
 
@@ -495,80 +484,173 @@ const App = () => {
   };
 
   // Add order item (dish) to the list
-  const addOrderItem = (name, price) => {
+  const addOrderItem = async (name, price) => {
     const newOrderItem = { name, price };
     const updatedOrderItems = [...orderItems, newOrderItem];
-    setOrderItems(updatedOrderItems);
-
-    // Save the updated order items to localStorage for the specific table
     const updatedOrders = { ...storedOrders, [currentTable]: updatedOrderItems };
+    setOrderItems(updatedOrderItems);
     localStorage.setItem("orders", JSON.stringify(updatedOrders));
-    /////////////////////
-    // Prepare payload for backend
-    console.log(updatedOrders);
-    const payload = Object.entries(updatedOrders).map(([table, orders]) => ({
-      table,
-      orders
-    }));
-    console.log("Payload to sync:", payload);
-    fetch('https://asianloopserver.onrender.com/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-      .then(res => res.json())
-      .then(data => console.log("Synced to DB:", data))
-      .catch(err => console.error("Error syncing orders:", err));
+
+    setLoading(true);
+
+    const payload = [{ table: currentTable, orders: updatedOrderItems }];
+
+    // 🕒 helper for timeout
+    const fetchWithTimeout = (url, options, timeout = 7000) =>
+      Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), timeout)
+        ),
+      ]);
+
+    // 🔁 retry mechanism (3 attempts)
+    let attempts = 0;
+    const maxAttempts = 3;
+    let success = false;
+
+    while (!success && attempts < maxAttempts) {
+      attempts++;
+      try {
+        const res = await fetchWithTimeout(
+          "https://asianloopserver.onrender.com/api/orders",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
+
+        if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+        const data = await res.json();
+        console.log("✅ Synced to DB:", data);
+        success = true;
+      } catch (err) {
+        console.warn(`Attempt ${attempts} failed:`, err.message);
+        if (attempts === maxAttempts) {
+          console.error("❌ Failed after 3 attempts");
+          alert("⚠️ Could not sync to server. Will retry automatically later.");
+        } else {
+          await new Promise((r) => setTimeout(r, 1500)); // wait before retry
+        }
+      }
+    }
+
+    setLoading(false);
   };
 
+
+
   // Remove order item from the list
-  const removeOrderItem = (index) => {
+  const removeOrderItem = async (index) => {
     const updatedOrderItems = orderItems.filter((_, i) => i !== index);
     setOrderItems(updatedOrderItems);
 
-    // Update the order in localStorage for the specific table
+    // 💾 Update local cache immediately
     const updatedOrders = { ...storedOrders, [currentTable]: updatedOrderItems };
     localStorage.setItem("orders", JSON.stringify(updatedOrders));
-    /////////////////////
-    // Prepare payload for backend
-    console.log(updatedOrders);
-    const payload = Object.entries(updatedOrders).map(([table, orders]) => ({
-      table,
-      orders
-    }));
 
-    fetch('https://asianloopserver.onrender.com/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-      .then(res => res.json())
-      .then(data => console.log("Synced to DB:", data))
-      .catch(err => console.error("Error syncing orders:", err));
+    // 🌀 Prepare payload (only current table)
+    const payload = [
+      {
+        table: currentTable,
+        orders: updatedOrderItems,
+      },
+    ];
+
+    setIsSyncing(true);
+
+    // Helper: fetch with timeout
+    const fetchWithTimeout = (url, options, timeout = 7000) =>
+      Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), timeout)
+        ),
+      ]);
+
+    // 🔁 Retry logic (3 attempts)
+    let attempts = 0;
+    const maxAttempts = 3;
+    let success = false;
+
+    while (!success && attempts < maxAttempts) {
+      attempts++;
+      try {
+        const res = await fetchWithTimeout(
+          "https://asianloopserver.onrender.com/api/orders",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
+
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+        const data = await res.json();
+        console.log("✅ Synced to DB:", data);
+        success = true;
+      } catch (err) {
+        console.warn(`Attempt ${attempts} failed:`, err.message);
+        if (attempts < maxAttempts) {
+          await new Promise((r) => setTimeout(r, 1500)); // wait 1.5s before retry
+        } else {
+          console.error("❌ Failed after 3 attempts:", err);
+          alert("⚠️ Could not sync with the server. Will retry later.");
+        }
+      }
+    }
+
+    setIsSyncing(false);
   };
+
+
   const tablesWithOrders = Object.keys(storedOrders).filter(
     (table) => storedOrders[table] && storedOrders[table].length > 0
   ).map(Number); // convert to number if needed
 
-  const totalSales = parseFloat(localStorage.getItem("totalSales")) || 0;
 
   const handleRefreshTwice = () => {
     // First reload
     window.location.reload();
 
   };
-  
+
 
   const switchTables = () => {
     if (!firstTable || !secondTable) return;
 
     setOrderItems((prev) => {
       const newOrders = { ...prev };
+
+      // 🔁 Swap the orders
       [newOrders[firstTable], newOrders[secondTable]] = [
         newOrders[secondTable],
         newOrders[firstTable],
       ];
+
+      // 💾 Save to localStorage
       localStorage.setItem("orders", JSON.stringify(newOrders));
+
+      // 🧱 Prepare payload (only the two swapped tables)
+      const payload = [firstTable, secondTable].map((table) => ({
+        table,
+        orders: newOrders[table],
+      }));
+
+      console.log("Payload to sync:", payload);
+
+      // 🌐 Sync to MongoDB backend
+      fetch("https://asianloopserver.onrender.com/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => res.json())
+        .then((data) => console.log("✅ Synced to DB:", data))
+        .catch((err) => console.error("❌ Error syncing orders:", err));
+
       return newOrders;
     });
 
@@ -577,6 +659,7 @@ const App = () => {
     setSecondTable("");
     setShowModal(false);
   };
+
   return (
     <div className="w-full overflow-y-auto bg-white text-black flex flex-col items-center p-15">
       <h1 className="text-3xl text-green-300 font-bold mb-3">Asian Loop</h1>
@@ -620,7 +703,7 @@ const App = () => {
         className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow"
       >
         <FiRepeat className="w-5 h-5" />
-        Switch Tables
+        Đổi bàn
       </button>
 
       {/* Modal */}
@@ -628,23 +711,23 @@ const App = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-80">
             <h2 className="text-lg font-semibold mb-4 text-center">
-              Switch Table Orders
+              Đổi bàn
             </h2>
 
-            <div className="flex flex-col gap-3 mb-4">
+            <div className="flex gap-3 mb-4">
               <input
                 type="number"
-                placeholder="First table number"
+                placeholder="First table"
                 value={firstTable}
                 onChange={(e) => setFirstTable(e.target.value)}
-                className="border rounded-lg p-2 w-full"
+                className="border rounded-lg p-2 flex-1"
               />
               <input
                 type="number"
-                placeholder="Second table number"
+                placeholder="Second table"
                 value={secondTable}
                 onChange={(e) => setSecondTable(e.target.value)}
-                className="border rounded-lg p-2 w-full"
+                className="border rounded-lg p-2 flex-1"
               />
             </div>
 
@@ -653,14 +736,14 @@ const App = () => {
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
               >
-                Cancel
+                Hủy 
               </button>
               <button
                 onClick={switchTables}
                 disabled={!firstTable || !secondTable}
                 className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50"
               >
-                Confirm
+                Xác nhận
               </button>
             </div>
           </div>

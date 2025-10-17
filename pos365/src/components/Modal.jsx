@@ -299,11 +299,7 @@ const Modal = ({
             Insgesamt:<span className="text-2xl ml-20">{calculateTotal()}€</span>
           </div>
 
-          <div className="mt-4 flex justify-center">
-        <p onClick={handlePrintKitchenReceipt} className="text-sm">
-          Print 
-        </p>
-          </div>
+          
         </div>
       </div>
     )
