@@ -485,126 +485,126 @@ const App = () => {
 
   // Add order item (dish) to the list
   const addOrderItem = async (name, price) => {
-  const newOrderItem = { name, price };
-  const updatedOrderItems = [...orderItems, newOrderItem];
+    const newOrderItem = { name, price };
+    const updatedOrderItems = [...orderItems, newOrderItem];
 
-  // ✅ only update the chosen table in localStorage
-  const updatedOrders = { ...storedOrders, [currentTable]: updatedOrderItems };
-  setOrderItems(updatedOrderItems);
-  localStorage.setItem("orders", JSON.stringify(updatedOrders));
+    // ✅ only update the chosen table in localStorage
+    const updatedOrders = { ...storedOrders, [currentTable]: updatedOrderItems };
+    setOrderItems(updatedOrderItems);
+    localStorage.setItem("orders", JSON.stringify(updatedOrders));
 
-  // ✅ send only this table’s data to server
-  const payload = {
-    table: currentTable,
-    orders: updatedOrderItems,
-  };
+    // ✅ send only this table’s data to server
+    const payload = {
+      table: currentTable,
+      orders: updatedOrderItems,
+    };
 
-  // 🕒 helper for timeout
-  const fetchWithTimeout = (url, options, timeout = 7000) =>
-    Promise.race([
-      fetch(url, options),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout")), timeout)
-      ),
-    ]);
+    // 🕒 helper for timeout
+    const fetchWithTimeout = (url, options, timeout = 7000) =>
+      Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), timeout)
+        ),
+      ]);
 
-  // 🔁 retry mechanism (3 attempts)
-  let attempts = 0;
-  const maxAttempts = 3;
-  let success = false;
+    // 🔁 retry mechanism (3 attempts)
+    let attempts = 0;
+    const maxAttempts = 3;
+    let success = false;
 
-  while (!success && attempts < maxAttempts) {
-    attempts++;
-    try {
-      const res = await fetchWithTimeout(
-        "https://asianloopserver.onrender.com/api/orders",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-      const data = await res.json();
-      console.log("✅ Synced table", currentTable, "to DB:", data);
-      success = true;
-    } catch (err) {
-      console.warn(`Attempt ${attempts} failed:`, err.message);
-      if (attempts === maxAttempts) {
-        console.error("❌ Failed after 3 attempts");
-        alert(
-          `⚠️ Could not sync table ${currentTable} to server. Will retry automatically later.`
+    while (!success && attempts < maxAttempts) {
+      attempts++;
+      try {
+        const res = await fetchWithTimeout(
+          "https://asianloopserver.onrender.com/api/orders",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
         );
-      } else {
-        await new Promise((r) => setTimeout(r, 1500)); // wait before retry
+
+        if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+        const data = await res.json();
+        console.log("✅ Synced table", currentTable, "to DB:", data);
+        success = true;
+      } catch (err) {
+        console.warn(`Attempt ${attempts} failed:`, err.message);
+        if (attempts === maxAttempts) {
+          console.error("❌ Failed after 3 attempts");
+          alert(
+            `⚠️ Could not sync table ${currentTable} to server. Will retry automatically later.`
+          );
+        } else {
+          await new Promise((r) => setTimeout(r, 1500)); // wait before retry
+        }
       }
     }
-  }
-};
+  };
 
 
 
 
   // Remove order item from the list
- const removeOrderItem = async (index) => {
-  const updatedOrderItems = orderItems.filter((_, i) => i !== index);
-  setOrderItems(updatedOrderItems);
+  const removeOrderItem = async (index) => {
+    const updatedOrderItems = orderItems.filter((_, i) => i !== index);
+    setOrderItems(updatedOrderItems);
 
-  // 💾 Update local cache immediately
-  const updatedOrders = { ...storedOrders, [currentTable]: updatedOrderItems };
-  localStorage.setItem("orders", JSON.stringify(updatedOrders));
+    // 💾 Update local cache immediately
+    const updatedOrders = { ...storedOrders, [currentTable]: updatedOrderItems };
+    localStorage.setItem("orders", JSON.stringify(updatedOrders));
 
-  // ✅ Only send current table to server
-  const payload = {
-    table: currentTable,
-    orders: updatedOrderItems,
-  };
+    // ✅ Only send current table to server
+    const payload = {
+      table: currentTable,
+      orders: updatedOrderItems,
+    };
 
-  // 🕒 Helper: fetch with timeout
-  const fetchWithTimeout = (url, options, timeout = 7000) =>
-    Promise.race([
-      fetch(url, options),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout")), timeout)
-      ),
-    ]);
+    // 🕒 Helper: fetch with timeout
+    const fetchWithTimeout = (url, options, timeout = 7000) =>
+      Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), timeout)
+        ),
+      ]);
 
-  // 🔁 Retry logic (3 attempts)
-  let attempts = 0;
-  const maxAttempts = 3;
-  let success = false;
+    // 🔁 Retry logic (3 attempts)
+    let attempts = 0;
+    const maxAttempts = 3;
+    let success = false;
 
-  while (!success && attempts < maxAttempts) {
-    attempts++;
-    try {
-      const res = await fetchWithTimeout(
-        "https://asianloopserver.onrender.com/api/orders",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
-
-      const data = await res.json();
-      console.log("✅ Synced table", currentTable, "to DB:", data);
-      success = true;
-    } catch (err) {
-      console.warn(`Attempt ${attempts} failed:`, err.message);
-      if (attempts < maxAttempts) {
-        await new Promise((r) => setTimeout(r, 1500)); // wait 1.5s before retry
-      } else {
-        console.error("❌ Failed after 3 attempts:", err);
-        alert(
-          `⚠️ Could not sync table ${currentTable} with the server. Will retry later.`
+    while (!success && attempts < maxAttempts) {
+      attempts++;
+      try {
+        const res = await fetchWithTimeout(
+          "https://asianloopserver.onrender.com/api/orders",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
         );
+
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+        const data = await res.json();
+        console.log("✅ Synced table", currentTable, "to DB:", data);
+        success = true;
+      } catch (err) {
+        console.warn(`Attempt ${attempts} failed:`, err.message);
+        if (attempts < maxAttempts) {
+          await new Promise((r) => setTimeout(r, 1500)); // wait 1.5s before retry
+        } else {
+          console.error("❌ Failed after 3 attempts:", err);
+          alert(
+            `⚠️ Could not sync table ${currentTable} with the server. Will retry later.`
+          );
+        }
       }
     }
-  }
-};
+  };
 
 
 
@@ -620,46 +620,55 @@ const App = () => {
   };
 
 
-  const switchTables = () => {
+  const switchTables = async () => {
     if (!firstTable || !secondTable) return;
 
     setOrderItems((prev) => {
-      const newOrders = { ...prev };
+      const updated = { ...prev };
 
-      // Swap orders
-      [newOrders[firstTable], newOrders[secondTable]] = [
-        newOrders[secondTable],
-        newOrders[firstTable],
+      // Swap table orders
+      [updated[firstTable], updated[secondTable]] = [
+        updated[secondTable],
+        updated[firstTable],
       ];
 
-      // Save to localStorage
-      localStorage.setItem("orders", JSON.stringify(newOrders));
+      // ✅ Save locally
+      localStorage.setItem("orders", JSON.stringify(updated));
 
-      // 🔥 Sync to MongoDB backend
-      const payload = Object.entries(newOrders).map(([table, orders]) => ({
-        table,
-        orders,
-      }));
+      // ✅ Sync each affected table individually
+      const syncTable = async (table) => {
+        const payload = {
+          table,
+          orders: updated[table] || [],
+        };
 
-      console.log("Payload to sync:", payload);
+        try {
+          const res = await fetch("https://asianloopserver.onrender.com/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
 
-      fetch("https://asianloopserver.onrender.com/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-        .then((res) => res.json())
-        .then((data) => console.log("✅ Synced to DB:", data))
-        .catch((err) => console.error("❌ Error syncing orders:", err));
+          const data = await res.json();
+          console.log(`✅ Synced ${table}:`, data);
+        } catch (err) {
+          console.error(`❌ Failed syncing table ${table}:`, err);
+        }
+      };
 
-      return newOrders;
+      // ✅ Send 2 POST requests (1 for each swapped table)
+      syncTable(firstTable);
+      syncTable(secondTable);
+
+      return updated;
     });
 
-    // reset + close modal
+    // Reset UI
     setFirstTable("");
     setSecondTable("");
     setShowModal(false);
   };
+
 
 
   return (
