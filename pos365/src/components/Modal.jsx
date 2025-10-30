@@ -275,8 +275,14 @@ const Modal = ({
                   <span className="text-xl text-black mr-1 ">{item.price}€</span>
                   <span
                     onClick={() => {
+                      // Remove the checkbox state too
+                      setCheckedItems(prev => {
+                        const updated = { ...prev };
+                        delete updated[index];   // delete this checkbox value
+                        return updated;
+                      });
+
                       removeOrderItem(index);
-                      setNote("");
                     }}
                     className="text-gray-700 text-xl p-0 leading-none cursor-pointer"
                     style={{ background: 'none', border: 'none' }}
