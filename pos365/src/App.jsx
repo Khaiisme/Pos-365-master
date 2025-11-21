@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Table from "./components/Table";
 import Modal from "./components/Modal";
 import { FiRotateCcw } from 'react-icons/fi';
