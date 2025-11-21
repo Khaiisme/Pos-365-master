@@ -384,6 +384,7 @@ const App = () => {
   const [tables, setTables] = useState(storedTables);
   const [orderItems, setOrderItems] = useState(storedOrders);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const isModalOpenRef = useRef(isModalOpen);
   const [currentTable, setCurrentTable] = useState(null);
   const [loading, setLoading] = useState(true); // Loading state
   const [showModal, setShowModal] = useState(false);
@@ -392,62 +393,66 @@ const App = () => {
   // Retrieve orders from the backend 
   // 1. Fetch orders from backend when component mounts (page loads)
   useEffect(() => {
-    const fetchOrders = () => {
-      if (isModalOpen) return; // Don't fetch when modal is open
+    isModalOpenRef.current = isModalOpen;
+  }, [isModalOpen]);
 
-      fetch('https://asianloopserver.onrender.com/api/orders')
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            const ordersObject = {};
-            data.forEach(({ table, orders }) => {
-              ordersObject[table] = orders;
-            });
-            localStorage.setItem('orders', JSON.stringify(ordersObject));
-            const newOrderItem = JSON.parse(localStorage.getItem("orders")) || {};
-            setOrderItems(newOrderItem);
-          }
-        })
-        .catch(err => {
-          console.error('Error fetching orders:', err);
-          const fallbackOrders = JSON.parse(localStorage.getItem("orders")) || {};
-          setOrderItems(fallbackOrders);
-        })
-        .finally(() => {
-          setLoading(false);
+  useEffect(() => {
+    let interval;
+
+    const fetchOrders = async () => {
+      if (isModalOpenRef.current) return; // INSTANT check, always fresh value
+
+      try {
+        const res = await fetch('https://asianloopserver.onrender.com/api/orders');
+        const data = await res.json();
+
+        const ordersObject = {};
+        data.forEach(({ table, orders }) => {
+          ordersObject[table] = orders;
         });
+
+        localStorage.setItem('orders', JSON.stringify(ordersObject));
+        setOrderItems(ordersObject);
+      } catch (err) {
+        console.error("Order fetch error:", err);
+      }
     };
 
-    const fetchNotes = () => {
-      fetch('https://asianloopserver.onrender.com/api/notes')
-        .then(res => res.json())
-        .then(data => {
-          const notesObject = {};
-          data.forEach(({ tableName, note }) => {
-            notesObject[Number(tableName)] = note; // or String(tableName) if you prefer
-          });
-          localStorage.setItem("notes", JSON.stringify(notesObject));
-        })
-        .catch(err => {
-          console.error('Error fetching notes:', err);
-        })
-        .finally(() => {
-          setLoading(false);
+    const fetchNotes = async () => {
+      if (isModalOpenRef.current) return; // Also stop notes fetch if modal open
+
+      try {
+        const res = await fetch('https://asianloopserver.onrender.com/api/notes');
+        const data = await res.json();
+
+        const notesObject = {};
+        data.forEach(({ tableName, note }) => {
+          notesObject[Number(tableName)] = note;
         });
-    };// Fetch notes from backend
-    fetchNotes(); // Initial fetch for notes
-    fetchOrders(); // Initial fetch
 
+        localStorage.setItem("notes", JSON.stringify(notesObject));
+      } catch (err) {
+        console.error("Notes fetch error:", err);
+      }
+    };
+
+    // Initial load
+    fetchOrders();
+    fetchNotes();
+
+    // Only start interval when modal is CLOSED
     if (!isModalOpen) {
-      const interval = setInterval(() => {
-        fetchOrders();
-        fetchNotes();
-      }, 10000);
-
-      return () => clearInterval(interval);
+      interval = setInterval(() => {
+        if (!isModalOpenRef.current) {
+          fetchOrders();
+          fetchNotes();
+        }
+      }, 7000);
     }
 
-  }, [isModalOpen]); // Re-run effect when modal opens/closes
+    return () => clearInterval(interval);
+
+  }, [isModalOpen]);
 
 
 
@@ -623,47 +628,43 @@ const App = () => {
   const switchTables = async () => {
     if (!firstTable || !secondTable) return;
 
-    setOrderItems((prev) => {
-      const updated = { ...prev };
+    // 1️⃣ Get latest local state
+    const current = JSON.parse(JSON.stringify(orderItems));
 
-      // Swap table orders
-      [updated[firstTable], updated[secondTable]] = [
-        updated[secondTable],
-        updated[firstTable],
-      ];
+    // 2️⃣ Swap values
+    const updated = { ...current };
+    [updated[firstTable], updated[secondTable]] = [
+      updated[secondTable],
+      updated[firstTable],
+    ];
 
-      // ✅ Save locally
-      localStorage.setItem("orders", JSON.stringify(updated));
+    // 3️⃣ Apply state update (pure)
+    setOrderItems(updated);
 
-      // ✅ Sync each affected table individually
-      const syncTable = async (table) => {
-        const payload = {
-          table,
-          orders: updated[table] || [],
-        };
+    // 4️⃣ Save locally
+    localStorage.setItem("orders", JSON.stringify(updated));
 
-        try {
-          const res = await fetch("https://asianloopserver.onrender.com/api/orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
+    // 5️⃣ Sync backend OUTSIDE of setState
+    const syncTable = async (table) => {
+      try {
+        await fetch("https://asianloopserver.onrender.com/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            table,
+            orders: updated[table] || [],
+          }),
+        });
+        console.log(`✔ Synced table ${table}`);
+      } catch (err) {
+        console.error(`❌ Error syncing table ${table}`, err);
+      }
+    };
 
-          const data = await res.json();
-          console.log(`✅ Synced ${table}:`, data);
-        } catch (err) {
-          console.error(`❌ Failed syncing table ${table}:`, err);
-        }
-      };
+    // Sync both swapped tables in parallel
+    await Promise.all([syncTable(firstTable), syncTable(secondTable)]);
 
-      // ✅ Send 2 POST requests (1 for each swapped table)
-      syncTable(firstTable);
-      syncTable(secondTable);
-
-      return updated;
-    });
-
-    // Reset UI
+    // 6️⃣ Reset UI
     setFirstTable("");
     setSecondTable("");
     setShowModal(false);
