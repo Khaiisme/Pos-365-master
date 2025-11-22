@@ -18,29 +18,29 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch(err => console.error("MongoDB error:", err));
 
 // POST /api/orders - save all table orders
-// POST /api/orders - replace all orders with new ones
+
 app.post('/api/orders', async (req, res) => {
   try {
-    const tables = req.body;
-    console.log("Received tables:", tables);
-    // Optional: Validate input
-    if (!Array.isArray(tables)) {
-      return res.status(400).json({ error: 'Invalid format' });
+    const { table, orders } = req.body;
+
+    if (!table || !Array.isArray(orders)) {
+      return res.status(400).json({ error: 'Invalid format. Expecting {table, orders}' });
     }
 
-    // 1. Remove all existing orders
-    await Order.deleteMany({});
+    console.log("Updating table:", table);
 
-    // 2. Insert the new orders
-    const savedOrders = await Order.insertMany(tables);
-    console.log("Saved orders:", savedOrders);
-    res.status(200).json(savedOrders);
+    const updated = await Order.findOneAndUpdate(
+      { table },       // match by table
+      { orders },      // update the orders for that table
+      { new: true, upsert: true }
+    );
+
+    res.status(200).json(updated);
   } catch (error) {
-    console.error("Error saving orders:", error);
-    res.status(500).json({ error: 'Failed to save orders' });
+    console.error("Error saving order:", error);
+    res.status(500).json({ error: 'Failed to save order' });
   }
 });
-
 // GET /api/orders - fetch all orders
 app.get('/api/orders', async ( req , res) => {
   try {
@@ -55,12 +55,18 @@ app.get('/api/orders', async ( req , res) => {
 app.post('/api/notes', async (req, res) => {
   try {
     const { tableName, note } = req.body;
+
     console.log("Received note for table:", tableName, "Note:", note);
-     // Create and save the note
+
+    // Create and save the note
     const newNote = new Note({ tableName, note });
     await newNote.save();
 
-    res.status(201).json({ message: 'Note saved successfully.', note: newNote });
+    res.status(201).json({ 
+      message: 'Note saved successfully.', 
+      note: newNote 
+    });
+
   } catch (error) {
     console.error("Error saving note:", error);
     res.status(500).json({ error: 'Internal server error.' });

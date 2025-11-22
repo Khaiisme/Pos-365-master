@@ -384,6 +384,7 @@ const App = () => {
   const [tables, setTables] = useState(storedTables);
   const [orderItems, setOrderItems] = useState(storedOrders);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const isModalOpenRef = useRef(isModalOpen);
   const [currentTable, setCurrentTable] = useState(null);
   const [loading, setLoading] = useState(true); // Loading state
   const [showModal, setShowModal] = useState(false);
@@ -399,6 +400,7 @@ const App = () => {
   }, [isModalOpen]);
 
   useEffect(() => {
+<<<<<<< HEAD
     const fetchOrders = () => {
       // ✔ Instant check — prevents ANY fetch while modal open
       if (isModalOpenRef.current) return;
@@ -450,17 +452,76 @@ const App = () => {
 
     // Auto-refresh every 10s ONLY when modal closed
     let interval;
+=======
+    isModalOpenRef.current = isModalOpen;
+  }, [isModalOpen]);
+
+  useEffect(() => {
+    let interval;
+
+    const fetchOrders = async () => {
+      if (isModalOpenRef.current) return; // INSTANT check, always fresh value
+
+      try {
+        const res = await fetch('https://asianloopserver.onrender.com/api/orders');
+        const data = await res.json();
+
+        const ordersObject = {};
+        data.forEach(({ table, orders }) => {
+          ordersObject[table] = orders;
+        });
+
+        localStorage.setItem('orders', JSON.stringify(ordersObject));
+        setOrderItems(ordersObject);
+      } catch (err) {
+        console.error("Order fetch error:", err);
+      }
+    };
+
+    const fetchNotes = async () => {
+      if (isModalOpenRef.current) return; // Also stop notes fetch if modal open
+
+      try {
+        const res = await fetch('https://asianloopserver.onrender.com/api/notes');
+        const data = await res.json();
+
+        const notesObject = {};
+        data.forEach(({ tableName, note }) => {
+          notesObject[Number(tableName)] = note;
+        });
+
+        localStorage.setItem("notes", JSON.stringify(notesObject));
+      } catch (err) {
+        console.error("Notes fetch error:", err);
+      }
+    };
+
+    // Initial load
+    fetchOrders();
+    fetchNotes();
+
+    // Only start interval when modal is CLOSED
+>>>>>>> 7bb0e65d0e9f5f789d63d2ff49f2c84118a3a131
     if (!isModalOpen) {
       interval = setInterval(() => {
         if (!isModalOpenRef.current) {
           fetchOrders();
           fetchNotes();
         }
+<<<<<<< HEAD
       }, 8000);
     }
 
     return () => clearInterval(interval);
   }, [isModalOpen]);// Re-run effect when modal opens/closes
+=======
+      }, 7000);
+    }
+
+    return () => clearInterval(interval);
+
+  }, [isModalOpen]);
+>>>>>>> 7bb0e65d0e9f5f789d63d2ff49f2c84118a3a131
 
 
 
@@ -500,15 +561,17 @@ const App = () => {
   const addOrderItem = async (name, price) => {
     const newOrderItem = { name, price };
     const updatedOrderItems = [...orderItems, newOrderItem];
+
+    // ✅ only update the chosen table in localStorage
     const updatedOrders = { ...storedOrders, [currentTable]: updatedOrderItems };
     setOrderItems(updatedOrderItems);
     localStorage.setItem("orders", JSON.stringify(updatedOrders));
 
-
-    const payload = Object.entries(updatedOrders).map(([table, orders]) => ({
-      table,
-      orders,
-    }));
+    // ✅ send only this table’s data to server
+    const payload = {
+      table: currentTable,
+      orders: updatedOrderItems,
+    };
 
     // 🕒 helper for timeout
     const fetchWithTimeout = (url, options, timeout = 7000) =>
@@ -538,20 +601,22 @@ const App = () => {
 
         if (!res.ok) throw new Error(`Server responded with ${res.status}`);
         const data = await res.json();
-        console.log("✅ Synced to DB:", data);
+        console.log("✅ Synced table", currentTable, "to DB:", data);
         success = true;
       } catch (err) {
         console.warn(`Attempt ${attempts} failed:`, err.message);
         if (attempts === maxAttempts) {
           console.error("❌ Failed after 3 attempts");
-          alert("⚠️ Could not sync to server. Will retry automatically later.");
+          alert(
+            `⚠️ Could not sync table ${currentTable} to server. Will retry automatically later.`
+          );
         } else {
           await new Promise((r) => setTimeout(r, 1500)); // wait before retry
         }
       }
     }
-
   };
+
 
 
 
@@ -564,15 +629,13 @@ const App = () => {
     const updatedOrders = { ...storedOrders, [currentTable]: updatedOrderItems };
     localStorage.setItem("orders", JSON.stringify(updatedOrders));
 
-    // 🌀 Prepare payload (only current table)
-    const payload = Object.entries(updatedOrders).map(([table, orders]) => ({
-      table,
-      orders,
-    }));
+    // ✅ Only send current table to server
+    const payload = {
+      table: currentTable,
+      orders: updatedOrderItems,
+    };
 
-
-
-    // Helper: fetch with timeout
+    // 🕒 Helper: fetch with timeout
     const fetchWithTimeout = (url, options, timeout = 7000) =>
       Promise.race([
         fetch(url, options),
@@ -601,7 +664,7 @@ const App = () => {
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
         const data = await res.json();
-        console.log("✅ Synced to DB:", data);
+        console.log("✅ Synced table", currentTable, "to DB:", data);
         success = true;
       } catch (err) {
         console.warn(`Attempt ${attempts} failed:`, err.message);
@@ -609,12 +672,14 @@ const App = () => {
           await new Promise((r) => setTimeout(r, 1500)); // wait 1.5s before retry
         } else {
           console.error("❌ Failed after 3 attempts:", err);
-          alert("⚠️ Could not sync with the server. Will retry later.");
+          alert(
+            `⚠️ Could not sync table ${currentTable} with the server. Will retry later.`
+          );
         }
       }
     }
-
   };
+
 
 
   const tablesWithOrders = Object.keys(storedOrders).filter(
@@ -629,12 +694,13 @@ const App = () => {
   };
 
 
-  const switchTables = () => {
+  const switchTables = async () => {
     if (!firstTable || !secondTable) return;
 
-    setOrderItems((prev) => {
-      const newOrders = { ...prev };
+    // 1️⃣ Get latest local state
+    const current = JSON.parse(JSON.stringify(orderItems));
 
+<<<<<<< HEAD
       // Swap orders
       [newOrders[firstTable], newOrders[secondTable]] = [
         newOrders[secondTable],
@@ -643,32 +709,47 @@ const App = () => {
        setOrderItems(newOrders);
       // Save to localStorage
       localStorage.setItem("orders", JSON.stringify(newOrders));
+=======
+    // 2️⃣ Swap values
+    const updated = { ...current };
+    [updated[firstTable], updated[secondTable]] = [
+      updated[secondTable],
+      updated[firstTable],
+    ];
 
-      // 🔥 Sync to MongoDB backend
-      const payload = Object.entries(newOrders).map(([table, orders]) => ({
-        table,
-        orders,
-      }));
+    // 3️⃣ Apply state update (pure)
+    setOrderItems(updated);
+>>>>>>> 7bb0e65d0e9f5f789d63d2ff49f2c84118a3a131
 
-      console.log("Payload to sync:", payload);
+    // 4️⃣ Save locally
+    localStorage.setItem("orders", JSON.stringify(updated));
 
-      fetch("https://asianloopserver.onrender.com/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-        .then((res) => res.json())
-        .then((data) => console.log("✅ Synced to DB:", data))
-        .catch((err) => console.error("❌ Error syncing orders:", err));
+    // 5️⃣ Sync backend OUTSIDE of setState
+    const syncTable = async (table) => {
+      try {
+        await fetch("https://asianloopserver.onrender.com/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            table,
+            orders: updated[table] || [],
+          }),
+        });
+        console.log(`✔ Synced table ${table}`);
+      } catch (err) {
+        console.error(`❌ Error syncing table ${table}`, err);
+      }
+    };
 
-      return newOrders;
-    });
+    // Sync both swapped tables in parallel
+    await Promise.all([syncTable(firstTable), syncTable(secondTable)]);
 
-    // reset + close modal
+    // 6️⃣ Reset UI
     setFirstTable("");
     setSecondTable("");
     setShowModal(false);
   };
+
 
 
   return (
