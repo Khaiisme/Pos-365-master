@@ -392,7 +392,6 @@ const App = () => {
   const [secondTable, setSecondTable] = useState("");
   // Retrieve orders from the backend 
   // 1. Fetch orders from backend when component mounts (page loads)
-  const isModalOpenRef = useRef(isModalOpen);
 
   // Keep ref always up-to-date
   useEffect(() => {
@@ -400,59 +399,6 @@ const App = () => {
   }, [isModalOpen]);
 
   useEffect(() => {
-<<<<<<< HEAD
-    const fetchOrders = () => {
-      // ✔ Instant check — prevents ANY fetch while modal open
-      if (isModalOpenRef.current) return;
-
-      fetch("https://asianloopserver.onrender.com/api/orders")
-        .then((res) => res.json())
-        .then((data) => {
-          if (Array.isArray(data)) {
-            const ordersObject = {};
-            data.forEach(({ table, orders }) => {
-              ordersObject[table] = orders;
-            });
-
-            localStorage.setItem("orders", JSON.stringify(ordersObject));
-            setOrderItems(ordersObject);
-          }
-        })
-        .catch((err) => {
-          console.error("Error fetching orders:", err);
-          const fallback = JSON.parse(localStorage.getItem("orders")) || {};
-          setOrderItems(fallback);
-        })
-        .finally(() => setLoading(false));
-    };
-
-    const fetchNotes = () => {
-      // ✔ Also check notes (optional)
-      if (isModalOpenRef.current) return;
-
-      fetch("https://asianloopserver.onrender.com/api/notes")
-        .then((res) => res.json())
-        .then((data) => {
-          const notesObject = {};
-          data.forEach(({ tableName, note }) => {
-            notesObject[Number(tableName)] = note;
-          });
-
-          localStorage.setItem("notes", JSON.stringify(notesObject));
-        })
-        .catch((err) => {
-          console.error("Error fetching notes:", err);
-        })
-        .finally(() => setLoading(false));
-    };
-
-    // Initial fetch
-    fetchNotes();
-    fetchOrders();
-
-    // Auto-refresh every 10s ONLY when modal closed
-    let interval;
-=======
     isModalOpenRef.current = isModalOpen;
   }, [isModalOpen]);
 
@@ -501,27 +447,18 @@ const App = () => {
     fetchNotes();
 
     // Only start interval when modal is CLOSED
->>>>>>> 7bb0e65d0e9f5f789d63d2ff49f2c84118a3a131
     if (!isModalOpen) {
       interval = setInterval(() => {
         if (!isModalOpenRef.current) {
           fetchOrders();
           fetchNotes();
         }
-<<<<<<< HEAD
-      }, 8000);
-    }
-
-    return () => clearInterval(interval);
-  }, [isModalOpen]);// Re-run effect when modal opens/closes
-=======
       }, 7000);
     }
 
     return () => clearInterval(interval);
 
   }, [isModalOpen]);
->>>>>>> 7bb0e65d0e9f5f789d63d2ff49f2c84118a3a131
 
 
 
@@ -700,16 +637,6 @@ const App = () => {
     // 1️⃣ Get latest local state
     const current = JSON.parse(JSON.stringify(orderItems));
 
-<<<<<<< HEAD
-      // Swap orders
-      [newOrders[firstTable], newOrders[secondTable]] = [
-        newOrders[secondTable],
-        newOrders[firstTable],
-      ];
-       setOrderItems(newOrders);
-      // Save to localStorage
-      localStorage.setItem("orders", JSON.stringify(newOrders));
-=======
     // 2️⃣ Swap values
     const updated = { ...current };
     [updated[firstTable], updated[secondTable]] = [
@@ -719,7 +646,6 @@ const App = () => {
 
     // 3️⃣ Apply state update (pure)
     setOrderItems(updated);
->>>>>>> 7bb0e65d0e9f5f789d63d2ff49f2c84118a3a131
 
     // 4️⃣ Save locally
     localStorage.setItem("orders", JSON.stringify(updated));
