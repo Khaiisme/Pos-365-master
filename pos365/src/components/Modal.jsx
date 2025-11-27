@@ -3,6 +3,7 @@ import React from "react";
 
 
 const Modal = ({
+  fetchOrders,
   isOpen,
   onClose,
   tableName,
@@ -183,48 +184,48 @@ const Modal = ({
     const updatedOrderItems = orderItems.filter((_, index) => !checkedItems[index]);
     setOrderItems(updatedOrderItems);
     // 4️⃣ Now sync updated orders to server
-  const payload = {
-    table: tableName,
-    orders: updatedOrderItems,
-  };
+    const payload = {
+      table: tableName,
+      orders: updatedOrderItems,
+    };
 
-  // Helper: fetch with timeout
-  const fetchWithTimeout = (url, options, timeout = 7000) =>
-    Promise.race([
-      fetch(url, options),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout")), timeout)
-      ),
-    ]);
+    // Helper: fetch with timeout
+    const fetchWithTimeout = (url, options, timeout = 7000) =>
+      Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), timeout)
+        ),
+      ]);
 
-  // Retry mechanism
-  let attempts = 0;
-  const maxAttempts = 3;
-  let success = false;
+    // Retry mechanism
+    let attempts = 0;
+    const maxAttempts = 3;
+    let success = false;
 
-  while (!success && attempts < maxAttempts) {
-    attempts++;
+    while (!success && attempts < maxAttempts) {
+      attempts++;
 
-    try {
-      const res = await fetchWithTimeout(
-        "https://asianloopserver.onrender.com/api/orders",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      try {
+        const res = await fetchWithTimeout(
+          "https://asianloopserver.onrender.com/api/orders",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
 
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
-      const data = await res.json();
-      console.log(`✅ Synced table ${tableName} to DB:`, data);
-      success = true;
+        const data = await res.json();
+        console.log(`✅ Synced table ${tableName} to DB:`, data);
+        success = true;
 
-    } catch (err) {
-      console.warn(`⚠️ Attempt ${attempts} failed:`, err.message);
+      } catch (err) {
+        console.warn(`⚠️ Attempt ${attempts} failed:`, err.message);
+      }
     }
-  }
     // Step 6: Clear checked state
     setCheckedItems({});
   };
@@ -240,6 +241,7 @@ const Modal = ({
           <button
             onClick={() => {
               onClose();
+              fetchOrders;
             }}
             className="absolute mt-12 top-2 right-2 text-2xl font-bold text-white bg-black hover:text-gray-700"
           >
@@ -348,12 +350,17 @@ const Modal = ({
             </div>
           )}
           <div className="flex justify-end mt-3">
-            <button
-              onClick={() => createBillAndRemoveChecked(tableName)}
-              className="bg-green-600 text-white px-3 py-1.5 text-sm rounded-md shadow"
-            >
-              Pay
-            </button>
+            {Object.values(checkedItems).some(value => value) && (
+              <div className="flex justify-end mt-3">
+                <button
+                  onClick={() => createBillAndRemoveChecked(tableName)}
+                  className="bg-green-600 text-white px-1 py-1 text-sm rounded-md shadow"
+                >
+                  Pay
+                </button>
+              </div>
+            )}
+
           </div>
 
           {/* Total */}

@@ -708,6 +708,7 @@ const App = () => {
 
       {/* Modal */}
       <Modal
+        fetchOrders={fetchOrders}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         tableName={currentTable}
@@ -720,19 +721,22 @@ const App = () => {
         dishes={dishes}
       />
 
-      <button
-        onClick={() => setShowModal(true)}
-        className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow"
-      >
-        <FiRepeat className="w-5 h-5" />
-        Đổi bàn
-      </button>
-      <button
-        onClick={() => setShowBills(true)}
-        className="bg-blue-600 text-white px-3 py-1 rounded"
-      >
-        Lịch sử bàn
-      </button>
+      <div className="flex gap-3">
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow"
+        >
+          <FiRepeat className="w-5 h-5" />
+          Đổi bàn
+        </button>
+
+        <button
+          onClick={() => setShowBills(true)}
+          className="bg-blue-600 text-white px-3 py-1 rounded"
+        >
+          Lịch sử bàn
+        </button>
+      </div>
 
       {showBills && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
