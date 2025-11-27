@@ -137,41 +137,7 @@ const Modal = ({
 
   // Retrieve the stored note for this specific table from localStorage or use an empty string if no note is found
 
-  useEffect(() => {
-    if (tableName) {
-      const storedNotes = JSON.parse(localStorage.getItem("notes")) || {};
-      console.log("Stored notes:", storedNotes);
-      setNote(storedNotes[tableName] || ""); // Load the note for the selected table
-    }
-  }, [tableName, isOpen]); // Runs when a new table is opened
 
-  useEffect(() => {
-    if (!tableName) return;
-
-    const storedNotes = JSON.parse(localStorage.getItem("notes")) || {};
-
-    // Always update localStorage
-    storedNotes[tableName] = note;
-    localStorage.setItem("notes", JSON.stringify(storedNotes));
-
-    // Always send the note to backend
-    fetch('https://asianloopserver.onrender.com/api/notes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tableName, note }),
-    })
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-      })
-      .then(data => {
-        console.log('Note saved on backend:', data);
-      })
-      .catch(error => {
-        console.error('Error saving note on backend:', error);
-      });
-
-  }, [note, tableName]);
   const textareaRef = useRef(null);
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -183,6 +149,43 @@ const Modal = ({
     });
   }, [note, isOpen]);
 
+
+  const createBillAndRemoveChecked = (tableName) => {
+    // Step 1: Gather checked items
+    const checkedList = orderItems
+      .filter((_, index) => checkedItems[index])
+      .map(item => ({
+        name: item.name,
+        price: item.price
+      }));
+
+    if (checkedList.length === 0) return; // Nothing selected
+
+    // Step 2: Calculate total price
+    const billTotal = checkedList.reduce((sum, item) => sum + Number(item.price), 0);
+
+    // Step 3: Create bill object
+    const newBill = {
+      table: tableName,
+      items: checkedList,
+      total: billTotal,
+      date: new Date().toISOString(),
+    };
+
+    // Step 4: Save bill to localStorage (append to history)
+    const existingBills = JSON.parse(localStorage.getItem("bills")) || [];
+    existingBills.push(newBill);
+    localStorage.setItem("bills", JSON.stringify(existingBills));
+
+    console.log("Bill Saved:", newBill);
+
+    // Step 5: Remove checked items from orderItems
+    const updatedOrderItems = orderItems.filter((_, index) => !checkedItems[index]);
+    setOrderItems(updatedOrderItems);
+
+    // Step 6: Clear checked state
+    setCheckedItems({});
+  };
 
   return (
     isOpen && (
@@ -302,6 +305,12 @@ const Modal = ({
               Getrennt: {totalPrice.toFixed(2)}€
             </div>
           )}
+          <button
+            onClick={() => createBillAndRemoveChecked(tableName)}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md mt-3"
+          >
+            Pay
+          </button>
 
           {/* Total */}
           <div className="mt-4 font-bold bg-blue-300 w-full rounded-lg p-4">

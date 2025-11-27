@@ -398,66 +398,70 @@ const App = () => {
     isModalOpenRef.current = isModalOpen;
   }, [isModalOpen]);
 
-  useEffect(() => {
-    isModalOpenRef.current = isModalOpen;
-  }, [isModalOpen]);
 
+  // 2. FETCH FUNCTIONS
+  // ----------------------
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('https://asianloopserver.onrender.com/api/orders');
+      const data = await res.json();
+
+      const ordersObject = {};
+      data.forEach(({ table, orders }) => {
+        ordersObject[table] = orders;
+      });
+
+      localStorage.setItem("orders", JSON.stringify(ordersObject));
+      setOrderItems(ordersObject);
+    } catch (err) {
+      console.error("Order fetch error:", err);
+    }
+  };
+
+  const fetchNotes = async () => {
+    try {
+      const res = await fetch('https://asianloopserver.onrender.com/api/notes');
+      const data = await res.json();
+
+      const notesObject = {};
+      data.forEach(({ tableName, note }) => {
+        notesObject[Number(tableName)] = note;
+      });
+
+      localStorage.setItem("notes", JSON.stringify(notesObject));
+    } catch (err) {
+      console.error("Notes fetch error:", err);
+    }
+  };
+  // 3. INITIAL LOAD (ALWAYS RUNS)
+  // ----------------------
+  useEffect(() => {
+    const initialLoad = async () => {
+      await fetchOrders();
+      await fetchNotes();
+      setLoading(false);  // 🔥 FIX: loading now finishes
+    };
+
+    initialLoad();
+  }, []);
+
+
+  // ----------------------
+  // 4. INTERVAL REFRESH (PAUSE WHEN MODAL OPEN)
+  // ----------------------
   useEffect(() => {
     let interval;
 
-    const fetchOrders = async () => {
-      if (isModalOpenRef.current) return; // INSTANT check, always fresh value
-
-      try {
-        const res = await fetch('https://asianloopserver.onrender.com/api/orders');
-        const data = await res.json();
-
-        const ordersObject = {};
-        data.forEach(({ table, orders }) => {
-          ordersObject[table] = orders;
-        });
-
-        localStorage.setItem('orders', JSON.stringify(ordersObject));
-        setOrderItems(ordersObject);
-      } catch (err) {
-        console.error("Order fetch error:", err);
-      }
-    };
-
-    const fetchNotes = async () => {
-      if (isModalOpenRef.current) return; // Also stop notes fetch if modal open
-
-      try {
-        const res = await fetch('https://asianloopserver.onrender.com/api/notes');
-        const data = await res.json();
-
-        const notesObject = {};
-        data.forEach(({ tableName, note }) => {
-          notesObject[Number(tableName)] = note;
-        });
-
-        localStorage.setItem("notes", JSON.stringify(notesObject));
-      } catch (err) {
-        console.error("Notes fetch error:", err);
-      }
-    };
-
-    // Initial load
-    fetchOrders();
-    fetchNotes();
-
-    // Only start interval when modal is CLOSED
     if (!isModalOpen) {
       interval = setInterval(() => {
         if (!isModalOpenRef.current) {
           fetchOrders();
           fetchNotes();
         }
-      }, 7000);
+      }, 8000);
     }
 
     return () => clearInterval(interval);
-
   }, [isModalOpen]);
 
 
@@ -483,9 +487,6 @@ const App = () => {
   }
 
 
-
-
-  // Add an "Abholung" table with a dynamic name (e.g., Abholung 1, Abholung 2
 
   // Handle clicking on a table to open the modal and reset order items
   const handleTableClick = (tableName) => {
