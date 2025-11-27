@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Table from "./components/Table";
 import Modal from "./components/Modal";
+import BillsPage from "./components/Bills"
 import { FiRotateCcw } from 'react-icons/fi';
 // Sample dish data (name and price)
 import { FiRepeat } from "react-icons/fi";
@@ -390,6 +391,8 @@ const App = () => {
   const [showModal, setShowModal] = useState(false);
   const [firstTable, setFirstTable] = useState("");
   const [secondTable, setSecondTable] = useState("");
+  const [showBills, setShowBills] = useState(false);
+
   // Retrieve orders from the backend 
   // 1. Fetch orders from backend when component mounts (page loads)
 
@@ -724,6 +727,29 @@ const App = () => {
         <FiRepeat className="w-5 h-5" />
         Đổi bàn
       </button>
+      <button
+        onClick={() => setShowBills(true)}
+        className="bg-blue-600 text-white px-3 py-1 rounded"
+      >
+        Lịch sử bàn
+      </button>
+
+      {showBills && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
+          <div className="bg-white p-4 rounded-lg shadow-xl max-h-[80vh] overflow-y-auto w-[90%] max-w-md">
+
+            {/* Close button */}
+            <button
+              onClick={() => setShowBills(false)}
+              className="fixed top-3 right-3 z-50 text-gray-700 text-3xl bg-white rounded-full shadow-lg w-10 h-10 flex items-center justify-center"
+            >
+              ✕
+            </button>
+
+            <BillsPage />
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       {showModal && (
@@ -755,14 +781,14 @@ const App = () => {
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 rounded-lg bg-gray-300 text-white hover:bg-gray-400"
               >
-                Cancel
+                Hủy
               </button>
               <button
                 onClick={switchTables}
                 disabled={!firstTable || !secondTable}
                 className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50"
               >
-                Confirm
+                Xác nhận
               </button>
             </div>
           </div>

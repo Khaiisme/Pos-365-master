@@ -150,7 +150,7 @@ const Modal = ({
   }, [note, isOpen]);
 
 
-  const createBillAndRemoveChecked = (tableName) => {
+  const createBillAndRemoveChecked = async (tableName) => {
     // Step 1: Gather checked items
     const checkedList = orderItems
       .filter((_, index) => checkedItems[index])
@@ -182,7 +182,49 @@ const Modal = ({
     // Step 5: Remove checked items from orderItems
     const updatedOrderItems = orderItems.filter((_, index) => !checkedItems[index]);
     setOrderItems(updatedOrderItems);
+    // 4️⃣ Now sync updated orders to server
+  const payload = {
+    table: tableName,
+    orders: updatedOrderItems,
+  };
 
+  // Helper: fetch with timeout
+  const fetchWithTimeout = (url, options, timeout = 7000) =>
+    Promise.race([
+      fetch(url, options),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), timeout)
+      ),
+    ]);
+
+  // Retry mechanism
+  let attempts = 0;
+  const maxAttempts = 3;
+  let success = false;
+
+  while (!success && attempts < maxAttempts) {
+    attempts++;
+
+    try {
+      const res = await fetchWithTimeout(
+        "https://asianloopserver.onrender.com/api/orders",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+      const data = await res.json();
+      console.log(`✅ Synced table ${tableName} to DB:`, data);
+      success = true;
+
+    } catch (err) {
+      console.warn(`⚠️ Attempt ${attempts} failed:`, err.message);
+    }
+  }
     // Step 6: Clear checked state
     setCheckedItems({});
   };
@@ -305,12 +347,14 @@ const Modal = ({
               Getrennt: {totalPrice.toFixed(2)}€
             </div>
           )}
-          <button
-            onClick={() => createBillAndRemoveChecked(tableName)}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md mt-3"
-          >
-            Pay
-          </button>
+          <div className="flex justify-end mt-3">
+            <button
+              onClick={() => createBillAndRemoveChecked(tableName)}
+              className="bg-green-600 text-white px-3 py-1.5 text-sm rounded-md shadow"
+            >
+              Pay
+            </button>
+          </div>
 
           {/* Total */}
           <div className="mt-4 font-bold bg-blue-300 w-full rounded-lg p-4">
