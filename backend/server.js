@@ -73,6 +73,28 @@ app.post('/api/notes', async (req, res) => {
   }
 });
 
+app.put('/api/notes/:tableName', async (req, res) => {
+  try {
+    const { tableName } = req.params;
+    const { note } = req.body;
+
+    const updatedNote = await Note.findOneAndUpdate(
+      { tableName },
+      { note },
+      { new: true, upsert: true } // Create if not exist
+    );
+
+    res.status(200).json({
+      message: "Note updated",
+      note: updatedNote
+    });
+
+  } catch (error) {
+    console.error("Error updating note:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.get('/api/notes', async (req, res) => {
   try {
     const notes = await Note.find();
@@ -83,16 +105,6 @@ app.get('/api/notes', async (req, res) => {
   }
 });
 
-
-app.get('/health', async (req, res) => {
-  const isConnected = mongoose.connection.readyState === 1; // 1 = connected
-
-  if (isConnected) {
-    res.status(200).json({ status: 'ok', db: 'connected' });
-  } else {
-    res.status(503).json({ status: 'fail', db: 'disconnected' });
-  }
-});
 
 // Start the server
 const PORT = process.env.PORT || 3000;

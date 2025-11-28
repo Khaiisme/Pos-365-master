@@ -66,77 +66,6 @@ const Modal = ({
     setShowDishes(true); // Show dishes when the user starts typing
   };
 
-  // Close the dropdown if clicking outside the search bar
-  // useEffect(() => {
-  //   const handleOutsideClick = (event) => {
-  //     if (
-  //       searchWrapperRef.current &&
-  //       !searchWrapperRef.current.contains(event.target)
-  //     ) {
-  //       setShowDishes(false); // Hide the dropdown when clicking outside
-  //     }
-  //   };
-
-  //   document.addEventListener("mousedown", handleOutsideClick);
-  //   return () => {
-  //     document.removeEventListener("mousedown", handleOutsideClick);
-  //   };
-  // }, []);
-
-  // Handle double-click on an order item
-  const [clickTimer, setClickTimer] = useState(null); // Timer to handle double click
-  const handleItemClick = (index) => {
-    if (clickTimer) {
-      clearTimeout(clickTimer); // Clear the previous timeout
-      setClickTimer(null); // Reset the timer
-      // Remove item if double clicked
-      removeOrderItem(index);
-    } else {
-      const newTimer = setTimeout(() => {
-        setClickTimer(null); // Reset the timer after the timeout
-      }, 300); // 300ms to detect double click
-      setClickTimer(newTimer);
-    }
-  };
-  let totalSales = parseFloat(localStorage.getItem("totalSales")) || 0; // Load from storage or set to 0
-  // Handle the "Pay" button click
-  // const handlePay = () => {
-  //   if (!tableName) {
-  //     console.error("Table name is undefined!");
-  //     return;
-  //   }
-
-  //   // Retrieve current orders from localStorage
-  //   const storedOrders = JSON.parse(localStorage.getItem("orders")) || {};
-  //   const storedNotes = JSON.parse(localStorage.getItem("notes")) || {};
-  //   // Remove the specific table's order
-  //   delete storedOrders[tableName];
-  //   delete storedNotes[tableName];
-  //   // Save updated orders back to localStorage
-  //   localStorage.setItem("orders", JSON.stringify(storedOrders));
-  //   localStorage.setItem("notes", JSON.stringify(storedNotes));
-  //   ////////////////////
-  //   const payload = Object.entries(storedOrders).map(([table, orders]) => ({
-  //     table,
-  //     orders
-  //   }));
-  //   fetch('https://asianloopserver.onrender.com/api/orders', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify(payload)
-  //   })
-  //     .then(res => res.json())
-  //     .then(data => console.log("Synced to DB:", data))
-  //     .catch(err => console.error("Error syncing orders:", err));
-  //   // Clear order items in state
-  //   setOrderItems([]);
-  //   setNote("");
-
-  //   // Close the modal
-  //   onClose();
-  // };
-
-  // Retrieve the stored note for this specific table from localStorage or use an empty string if no note is found
 
 
   const textareaRef = useRef(null);
@@ -150,6 +79,25 @@ const Modal = ({
     });
   }, [note, isOpen]);
 
+  async function autoUpdateNote(tableName, note) {
+    try {
+      await fetch(`https://asianloopserver.onrender.com/api/notes/${tableName}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note }),
+      });
+    } catch (error) {
+      console.error("Auto update note error:", error);
+    }
+  }
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      autoUpdateNote(tableName, note);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [note]);
 
   const createBillAndRemoveChecked = async (tableName) => {
     // Step 1: Gather checked items
@@ -355,7 +303,7 @@ const Modal = ({
             {Object.values(checkedItems).some(value => value) && (
               <button
                 onClick={() => createBillAndRemoveChecked(tableName)}
-                className="bg-green-600 text-white px-2 py-1 text-sm rounded-md shadow"
+                className="bg-green-500 hover:bg-green-800 text-white px-1.5 py-0.5 text-xs rounded-md shadow font-semibold"
               >
                 Bezahlen
               </button>

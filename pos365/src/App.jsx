@@ -401,7 +401,6 @@ const App = () => {
     isModalOpenRef.current = isModalOpen;
   }, [isModalOpen]);
 
-
   // 2. FETCH FUNCTIONS
   // ----------------------
   const fetchOrders = async () => {
@@ -742,7 +741,7 @@ const App = () => {
       <div className="flex gap-3">
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow"
+          className="flex items-center gap-2 px-3 py-2 bg-green-400 hover:bg-blue-600 text-white rounded-lg shadow"
         >
           <FiRepeat className="w-5 h-5" />
           Đổi bàn
@@ -750,7 +749,7 @@ const App = () => {
 
         <button
           onClick={() => setShowBills(true)}
-          className="bg-blue-600 text-white px-3 py-1 rounded"
+          className="bg-green-400 text-white px-3 py-1 rounded"
         >
           Lịch sử bàn
         </button>
@@ -817,7 +816,7 @@ const App = () => {
             <div className="flex justify-between">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-lg bg-gray-300 text-white hover:bg-gray-400"
+                className="px-4 py-2 rounded-lg bg-gray-300 text-black hover:bg-gray-400"
               >
                 Hủy
               </button>
