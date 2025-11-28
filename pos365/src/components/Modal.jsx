@@ -69,6 +69,26 @@ const Modal = ({
 
 
   const textareaRef = useRef(null);
+  // Fetch note for this table when opening
+  useEffect(() => {
+    if (!tableName) return;
+
+    async function fetchNote() {
+      try {
+        const res = await fetch(
+          `https://asianloopserver.onrender.com/api/notes/${tableName}`
+        );
+        const data = await res.json();
+        setNote(data?.note || "");
+      } catch (error) {
+        console.error("Error loading note:", error);
+        setNote("");
+      }
+    }
+
+    fetchNote();
+  }, [tableName]);
+
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -303,7 +323,7 @@ const Modal = ({
             {Object.values(checkedItems).some(value => value) && (
               <button
                 onClick={() => createBillAndRemoveChecked(tableName)}
-                className="bg-green-500 hover:bg-green-800 text-white px-1.5 py-0.5 text-xs rounded-md shadow font-semibold"
+                className="bg-green-600 hover:bg-green-800 text-white px-1.5 py-0.5 text-xs rounded-md shadow font-semibold"
               >
                 Bezahlen
               </button>

@@ -393,6 +393,42 @@ const App = () => {
   const [secondTable, setSecondTable] = useState("");
   const [showBills, setShowBills] = useState(false);
 
+
+
+  useEffect(() => {
+    const INACTIVITY_LIMIT = 40 * 60 * 1000; // 40 minutes
+    let timer;
+
+    const resetTimer = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        localStorage.setItem("forceReload", "true");
+      }, INACTIVITY_LIMIT);
+    };
+
+    // Activity listeners
+    const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
+    events.forEach((event) => window.addEventListener(event, resetTimer));
+
+    resetTimer(); // start timer
+
+    return () => {
+      clearTimeout(timer);
+      events.forEach((event) =>
+        window.removeEventListener(event, resetTimer)
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+  const shouldReload = localStorage.getItem("forceReload");
+
+  if (shouldReload === "true") {
+    localStorage.removeItem("forceReload");
+    window.location.reload();
+  }
+}, []);
+
   // Retrieve orders from the backend 
   // 1. Fetch orders from backend when component mounts (page loads)
 
