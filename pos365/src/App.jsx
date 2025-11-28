@@ -454,22 +454,18 @@ const App = () => {
   // ----------------------
   // 1. Start interval only once when component mounts
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!isModalOpenRef.current) {
-        fetchOrders();
-        fetchNotes();
-      }
-    }, 8000);
+    let interval;
 
-    // No cleanup → interval stays forever
-  }, []);
-
-  // 2. Extra effect: whenever modal closes, fetch immediately once
-  useEffect(() => {
     if (!isModalOpen) {
-      fetchOrders();
-      fetchNotes();
+      interval = setInterval(() => {
+        if (!isModalOpenRef.current) {
+          fetchOrders();
+          fetchNotes();
+        }
+      }, 8000);
     }
+
+    return () => clearInterval(interval);
   }, [isModalOpen]);
 
 
@@ -761,19 +757,32 @@ const App = () => {
       </div>
 
       {showBills && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
-          <div className="bg-white p-4 rounded-lg shadow-xl max-h-[80vh] overflow-y-auto w-[90%] max-w-md">
+        <div className="fixed inset-0 bg-gray-300/80 flex items-center justify-center p-4">
 
-            {/* Close button */}
+          {/* Modal container */}
+          <div className="relative bg-white p-4 rounded-lg shadow-xl max-h-[80vh] 
+                  overflow-y-auto w-[90%] max-w-md">
+
+            {/* Close button - MOBILE ONLY (inside the modal) */}
             <button
               onClick={() => setShowBills(false)}
-              className="fixed top-3 right-3 z-50 text-gray-700 text-3xl bg-white rounded-full shadow-lg w-10 h-10 flex items-center justify-center"
+              className="md:hidden absolute top-3 right-3 text-gray-700 text-3xl 
+                 bg-white rounded-full shadow w-10 h-10 flex items-center justify-center"
             >
               ✕
             </button>
 
             <BillsPage />
           </div>
+
+          {/* Close button - DESKTOP ONLY (beside modal) */}
+          <button
+            onClick={() => setShowBills(false)}
+            className="hidden md:flex ml-4 bg-white text-gray-700 text-3xl rounded-full 
+               shadow w-12 h-12 items-center justify-center"
+          >
+            ✕
+          </button>
         </div>
       )}
 
