@@ -757,32 +757,35 @@ const App = () => {
       </div>
 
       {showBills && (
-        <div className="fixed inset-0 bg-gray-300/80 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-gray-300 flex justify-center items-center p-4">
 
-          {/* Modal container */}
-          <div className="relative bg-white p-4 rounded-lg shadow-xl max-h-[80vh] 
+          {/* Modal */}
+          <div className="bg-white p-4 rounded-lg shadow-xl max-h-[80vh]
                   overflow-y-auto w-[90%] max-w-md">
-
-            {/* Close button - MOBILE ONLY (inside the modal) */}
-            <button
-              onClick={() => setShowBills(false)}
-              className="md:hidden absolute top-3 right-3 text-gray-700 text-3xl 
-                 bg-white rounded-full shadow w-10 h-10 flex items-center justify-center"
-            >
-              ✕
-            </button>
-
             <BillsPage />
           </div>
 
-          {/* Close button - DESKTOP ONLY (beside modal) */}
+          {/* FIXED close button (MOBILE POSITION) */}
           <button
             onClick={() => setShowBills(false)}
-            className="hidden md:flex ml-4 bg-white text-gray-700 text-3xl rounded-full 
-               shadow w-12 h-12 items-center justify-center"
+            className="fixed top-4 right-4 md:hidden
+               bg-white text-gray-700 text-3xl rounded-full shadow 
+               w-10 h-10 flex items-center justify-center z-50"
           >
             ✕
           </button>
+
+          {/* FIXED close button (DESKTOP BESIDE MODAL) */}
+          <button
+            onClick={() => setShowBills(false)}
+            className="hidden md:flex fixed top-10 
+               right-[calc(50%-280px)]   /* position beside modal */
+               bg-white text-gray-700 text-3xl rounded-full shadow 
+               w-12 h-12 items-center justify-center z-50"
+          >
+            ✕
+          </button>
+
         </div>
       )}
 
