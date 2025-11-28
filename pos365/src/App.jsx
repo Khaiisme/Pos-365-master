@@ -452,19 +452,24 @@ const App = () => {
   // ----------------------
   // 4. INTERVAL REFRESH (PAUSE WHEN MODAL OPEN)
   // ----------------------
+  // 1. Start interval only once when component mounts
   useEffect(() => {
-    let interval;
+    const interval = setInterval(() => {
+      if (!isModalOpenRef.current) {
+        fetchOrders();
+        fetchNotes();
+      }
+    }, 8000);
 
+    // No cleanup → interval stays forever
+  }, []);
+
+  // 2. Extra effect: whenever modal closes, fetch immediately once
+  useEffect(() => {
     if (!isModalOpen) {
-      interval = setInterval(() => {
-        if (!isModalOpenRef.current) {
-          fetchOrders();
-          fetchNotes();
-        }
-      }, 8000);
+      fetchOrders();
+      fetchNotes();
     }
-
-    return () => clearInterval(interval);
   }, [isModalOpen]);
 
 
@@ -638,43 +643,60 @@ const App = () => {
   const switchTables = async () => {
     if (!firstTable || !secondTable) return;
 
-    // 1️⃣ Get latest local state
+    // 1️⃣ Capture original data
+    const original = JSON.parse(JSON.stringify(orderItems));
     const current = JSON.parse(JSON.stringify(orderItems));
 
-    // 2️⃣ Swap values
+    // Ensure keys exist (prevents undefined swaps)
+    if (!current.hasOwnProperty(firstTable) || !current.hasOwnProperty(secondTable)) {
+      console.warn("❌ One of the tables does not exist");
+      return;
+    }
+
+    // 2️⃣ Attempt swap
     const updated = { ...current };
     [updated[firstTable], updated[secondTable]] = [
-      updated[secondTable],
-      updated[firstTable],
+      current[secondTable],
+      current[firstTable],
     ];
 
-    // 3️⃣ Apply state update (pure)
+    // 3️⃣ Apply state + localStorage optimistically (we may rollback)
     setOrderItems(updated);
-
-    // 4️⃣ Save locally
     localStorage.setItem("orders", JSON.stringify(updated));
 
-    // 5️⃣ Sync backend OUTSIDE of setState
+    // Helper: Sync a single table
     const syncTable = async (table) => {
-      try {
-        await fetch("https://asianloopserver.onrender.com/api/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            table,
-            orders: updated[table] || [],
-          }),
-        });
-        console.log(`✔ Synced table ${table}`);
-      } catch (err) {
-        console.error(`❌ Error syncing table ${table}`, err);
-      }
+      return fetch("https://asianloopserver.onrender.com/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          table,
+          orders: updated[table] || [],
+        }),
+      });
     };
 
-    // Sync both swapped tables in parallel
-    await Promise.all([syncTable(firstTable), syncTable(secondTable)]);
+    try {
+      // 4️⃣ Sync backend for both tables
+      const results = await Promise.all([syncTable(firstTable), syncTable(secondTable)]);
 
-    // 6️⃣ Reset UI
+      // Check if any request failed (non-2xx)
+      if (!results.every((r) => r.ok)) {
+        throw new Error("Backend returned an error during swap sync.");
+      }
+
+      console.log("✔ Swap completed successfully");
+    } catch (err) {
+      console.error("❌ Swap failed. Rolling back...", err);
+
+      // 5️⃣ Rollback to original data
+      setOrderItems(original);
+      localStorage.setItem("orders", JSON.stringify(original));
+
+      alert("⚠ Could not swap tables due to server error. No changes were made.");
+    }
+
+    // 6️⃣ Reset UI regardless of success/failure
     setFirstTable("");
     setSecondTable("");
     setShowModal(false);

@@ -183,6 +183,13 @@ const Modal = ({
     // Step 5: Remove checked items from orderItems
     const updatedOrderItems = orderItems.filter((_, index) => !checkedItems[index]);
     setOrderItems(updatedOrderItems);
+
+    const saved = JSON.parse(localStorage.getItem("orders")) || {};
+    const updatedAllOrders = {
+      ...saved,
+      [tableName]: updatedOrderItems,
+    };
+    localStorage.setItem("orders", JSON.stringify(updatedAllOrders));
     // 4️⃣ Now sync updated orders to server
     const payload = {
       table: tableName,
@@ -344,23 +351,21 @@ const Modal = ({
 
           </div>
           {/* Total price of checked items */}
-          {totalPrice > 0 && (
-            <div className="mt-3 text-right font-bold text-xl text-green-700">
-              Getrennt: {totalPrice.toFixed(2)}€
-            </div>
-          )}
-          <div className="flex justify-end mt-3">
+          <div className="flex justify-end items-center mt-3 gap-4">
             {Object.values(checkedItems).some(value => value) && (
-              <div className="flex justify-end mt-3">
-                <button
-                  onClick={() => createBillAndRemoveChecked(tableName)}
-                  className="bg-green-600 text-white px-1 py-1 text-sm rounded-md shadow"
-                >
-                  Pay
-                </button>
-              </div>
+              <button
+                onClick={() => createBillAndRemoveChecked(tableName)}
+                className="bg-green-600 text-white px-2 py-1 text-sm rounded-md shadow"
+              >
+                Bezahlen
+              </button>
             )}
 
+            {totalPrice > 0 && (
+              <div className="font-bold text-xl text-green-700">
+                Getrennt: {totalPrice.toFixed(2)}€
+              </div>
+            )}
           </div>
 
           {/* Total */}
