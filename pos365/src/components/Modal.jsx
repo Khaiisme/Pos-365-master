@@ -22,7 +22,18 @@ const Modal = ({
   // Calculate the total
 
   function getNoteForTable(tableName) {
-    const notes = JSON.parse(localStorage.getItem("notes") || "[]");
+    let notes;
+
+    try {
+      notes = JSON.parse(localStorage.getItem("notes"));
+    } catch {
+      notes = [];
+    }
+
+    // Ensure notes is ALWAYS an array
+    if (!Array.isArray(notes)) {
+      notes = [];
+    }
 
     const found = notes.find(
       (n) => Number(n.tableName) === Number(tableName)
@@ -30,6 +41,7 @@ const Modal = ({
 
     return found?.note || "";
   }
+
 
   useEffect(() => {
     if (isOpen && tableName) {
@@ -50,7 +62,7 @@ const Modal = ({
 
     return total.toFixed(2); // Returns a string like "20.00"
   };
-  
+
   const [checkedItems, setCheckedItems] = useState({});
   const toggleChecked = (index) => {
     setCheckedItems((prev) => ({

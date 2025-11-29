@@ -461,15 +461,20 @@ const App = () => {
       const res = await fetch("https://asianloopserver.onrender.com/api/notes");
       const data = await res.json();
 
-      // Save array in localStorage
-      localStorage.setItem("notes", JSON.stringify(data));
+      if (Array.isArray(data)) {
+        localStorage.setItem("notes", JSON.stringify(data));
+      } else {
+        localStorage.setItem("notes", JSON.stringify([]));
+      }
 
       return data;
     } catch (err) {
       console.error("Fetch notes error:", err);
+      localStorage.setItem("notes", JSON.stringify([]));
       return [];
     }
   }
+
 
   // 3. INITIAL LOAD (ALWAYS RUNS)
   // ----------------------
