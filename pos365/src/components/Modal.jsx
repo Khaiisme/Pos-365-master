@@ -108,10 +108,10 @@ const Modal = ({
 
   async function autoUpdateNote(tableName, note) {
     try {
-      await fetch(`https://asianloopserver.onrender.com/api/notes/${tableName}`, {
-        method: "PUT",
+      await fetch("https://asianloopserver.onrender.com/api/notes", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note }),
+        body: JSON.stringify({ tableName, note }),
       });
     } catch (error) {
       console.error("Auto update note error:", error);
