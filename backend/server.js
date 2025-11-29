@@ -73,13 +73,47 @@ app.post('/api/notes', async (req, res) => {
 });
 
 
-app.get('/api/notes', async (req, res) => {
+app.get("/api/notes", async (req, res) => {
   try {
     const notes = await Note.find();
     res.status(200).json(notes);
   } catch (error) {
     console.error("Error fetching notes:", error);
-    res.status(500).json({ error: 'Internal server error.' });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/api/notes/:tableName", async (req, res) => {
+  try {
+    const { tableName } = req.params;
+
+    const note = await Note.findOne({ tableName });
+
+    res.status(200).json(note || { tableName, note: "" });
+  } catch (error) {
+    console.error("Error fetching note:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/api/notes", async (req, res) => {
+  try {
+    const { tableName, note } = req.body;
+
+    const savedNote = await Note.findOneAndUpdate(
+      { tableName },
+      { note },
+      { new: true, upsert: true }
+    );
+
+    res.status(200).json({
+      message: "Note saved",
+      note: savedNote
+    });
+
+  } catch (error) {
+    console.error("Error saving note:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
