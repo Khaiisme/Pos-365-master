@@ -483,7 +483,7 @@ const App = () => {
         if (!isModalOpenRef.current) {
           fetchOrders();
         }
-      }, 2000);
+      }, 1500);
     }
 
     return () => clearInterval(interval);
