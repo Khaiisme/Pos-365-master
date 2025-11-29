@@ -18,8 +18,27 @@ const Modal = ({
   const [showDishes, setShowDishes] = useState(false); // To control the visibility of the filtered dishes
   const modalRef = useRef(null); // Reference for the modal
   const searchWrapperRef = useRef(null); // Reference for the search wrapper
-  const [note, setNote] = useState(localStorage.getItem(tableName) || "");
+  const [note, setNote] = useState("");
   // Calculate the total
+
+  function getNoteForTable(tableName) {
+    const notes = JSON.parse(localStorage.getItem("notes") || "[]");
+
+    const found = notes.find(
+      (n) => Number(n.tableName) === Number(tableName)
+    );
+
+    return found?.note || "";
+  }
+
+  useEffect(() => {
+    if (isOpen && tableName) {
+      const savedNote = getNoteForTable(tableName);
+      setNote(savedNote);
+    }
+  }, [isOpen, tableName]);
+
+
   const calculateTotal = () => {
     let total = 0;
 
@@ -31,11 +50,7 @@ const Modal = ({
 
     return total.toFixed(2); // Returns a string like "20.00"
   };
-  //   const calculateTotal = () => {
-  //   const total = orderItems.reduce((sum, item) => sum + parseFloat(item.price), 0);
-  //   return total.toFixed(2);
-  // };
-  ///calculate the total price of checked items
+  
   const [checkedItems, setCheckedItems] = useState({});
   const toggleChecked = (index) => {
     setCheckedItems((prev) => ({
@@ -69,26 +84,6 @@ const Modal = ({
 
 
   const textareaRef = useRef(null);
-  // Fetch note for this table when opening
-  useEffect(() => {
-    if (!tableName) return;
-
-    async function fetchNote() {
-      try {
-        const res = await fetch(
-          `https://asianloopserver.onrender.com/api/notes/${tableName}`
-        );
-        const data = await res.json();
-        setNote(data?.note || "");
-      } catch (error) {
-        console.error("Error loading note:", error);
-        setNote("");
-      }
-    }
-
-    fetchNote();
-  }, [tableName]);
-
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -323,7 +318,7 @@ const Modal = ({
             {Object.values(checkedItems).some(value => value) && (
               <button
                 onClick={() => createBillAndRemoveChecked(tableName)}
-                className="bg-green-600 hover:bg-green-800 text-white px-1.5 py-0.5 text-xs rounded-md shadow font-semibold"
+                className="bg-green-600 hover:bg-green-800 text-white px-0 py-0 text-xs rounded-md shadow font-semibold"
               >
                 Bezahlen
               </button>

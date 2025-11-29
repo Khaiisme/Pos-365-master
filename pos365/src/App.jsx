@@ -421,13 +421,13 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-  const shouldReload = localStorage.getItem("forceReload");
+    const shouldReload = localStorage.getItem("forceReload");
 
-  if (shouldReload === "true") {
-    localStorage.removeItem("forceReload");
-    window.location.reload();
-  }
-}, []);
+    if (shouldReload === "true") {
+      localStorage.removeItem("forceReload");
+      window.location.reload();
+    }
+  }, []);
 
   // Retrieve orders from the backend 
   // 1. Fetch orders from backend when component mounts (page loads)
@@ -456,21 +456,21 @@ const App = () => {
     }
   };
 
-  const fetchNotes = async () => {
+  async function fetchNotes() {
     try {
-      const res = await fetch('https://asianloopserver.onrender.com/api/notes');
+      const res = await fetch("https://asianloopserver.onrender.com/api/notes");
       const data = await res.json();
 
-      const notesObject = {};
-      data.forEach(({ tableName, note }) => {
-        notesObject[Number(tableName)] = note;
-      });
+      // Save array in localStorage
+      localStorage.setItem("notes", JSON.stringify(data));
 
-      localStorage.setItem("notes", JSON.stringify(notesObject));
+      return data;
     } catch (err) {
-      console.error("Notes fetch error:", err);
+      console.error("Fetch notes error:", err);
+      return [];
     }
-  };
+  }
+
   // 3. INITIAL LOAD (ALWAYS RUNS)
   // ----------------------
   useEffect(() => {
@@ -497,7 +497,7 @@ const App = () => {
           fetchOrders();
           fetchNotes();
         }
-      }, 8000);
+      }, 5000);
     }
 
     return () => clearInterval(interval);

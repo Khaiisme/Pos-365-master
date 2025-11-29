@@ -56,44 +56,22 @@ app.post('/api/notes', async (req, res) => {
   try {
     const { tableName, note } = req.body;
 
-    console.log("Received note for table:", tableName, "Note:", note);
+    const savedNote = await Note.findOneAndUpdate(
+      { tableName },
+      { note },
+      { new: true, upsert: true }  // create if doesn't exist
+    );
 
-    // Create and save the note
-    const newNote = new Note({ tableName, note });
-    await newNote.save();
-
-    res.status(201).json({ 
-      message: 'Note saved successfully.', 
-      note: newNote 
+    res.status(201).json({
+      message: 'Note saved/updated successfully.',
+      note: savedNote
     });
-
   } catch (error) {
     console.error("Error saving note:", error);
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
 
-app.put('/api/notes/:tableName', async (req, res) => {
-  try {
-    const { tableName } = req.params;
-    const { note } = req.body;
-
-    const updatedNote = await Note.findOneAndUpdate(
-      { tableName },
-      { note },
-      { new: true, upsert: true } // Create if not exist
-    );
-
-    res.status(200).json({
-      message: "Note updated",
-      note: updatedNote
-    });
-
-  } catch (error) {
-    console.error("Error updating note:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
 
 app.get('/api/notes', async (req, res) => {
   try {
