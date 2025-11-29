@@ -482,9 +482,8 @@ const App = () => {
       interval = setInterval(() => {
         if (!isModalOpenRef.current) {
           fetchOrders();
-          fetchNotes();
         }
-      }, 5000);
+      }, 2000);
     }
 
     return () => clearInterval(interval);
