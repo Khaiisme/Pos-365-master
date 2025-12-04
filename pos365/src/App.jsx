@@ -763,7 +763,7 @@ const App = () => {
       <div className="flex gap-3">
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-3 py-2 bg-green-400 hover:bg-blue-600 text-white rounded-lg shadow"
+          className="flex items-center gap-2 px-3 py-2 bg-green-300 hover:bg-blue-600 text-black rounded-lg shadow"
         >
           <FiRepeat className="w-5 h-5" />
           Đổi bàn
@@ -771,7 +771,7 @@ const App = () => {
 
         <button
           onClick={() => setShowBills(true)}
-          className="bg-green-400 text-white px-3 py-1 rounded"
+          className="bg-green-300 text-black px-3 py-1 rounded"
         >
           Lịch sử bàn
         </button>
