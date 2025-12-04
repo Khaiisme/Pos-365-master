@@ -121,233 +121,233 @@ const Modal = ({
   }, [note, tableName]);
 
 
-const createBillAndRemoveChecked = async (tableName) => {
-  // Step 1: Gather checked items
-  const checkedList = orderItems
-    .filter((_, index) => checkedItems[index])
-    .map(item => ({
-      name: item.name,
-      price: item.price
-    }));
+  const createBillAndRemoveChecked = async (tableName) => {
+    // Step 1: Gather checked items
+    const checkedList = orderItems
+      .filter((_, index) => checkedItems[index])
+      .map(item => ({
+        name: item.name,
+        price: item.price
+      }));
 
-  if (checkedList.length === 0) return; // Nothing selected
+    if (checkedList.length === 0) return; // Nothing selected
 
-  // Step 2: Calculate total price
-  const billTotal = checkedList.reduce((sum, item) => sum + Number(item.price), 0);
+    // Step 2: Calculate total price
+    const billTotal = checkedList.reduce((sum, item) => sum + Number(item.price), 0);
 
-  // Step 3: Create bill object
-  const newBill = {
-    table: tableName,
-    items: checkedList,
-    total: billTotal,
-    date: new Date().toISOString(),
-  };
+    // Step 3: Create bill object
+    const newBill = {
+      table: tableName,
+      items: checkedList,
+      total: billTotal,
+      date: new Date().toISOString(),
+    };
 
-  // Step 4: Save bill to localStorage (append to history)
-  const existingBills = JSON.parse(localStorage.getItem("bills")) || [];
-  existingBills.push(newBill);
-  localStorage.setItem("bills", JSON.stringify(existingBills));
+    // Step 4: Save bill to localStorage (append to history)
+    const existingBills = JSON.parse(localStorage.getItem("bills")) || [];
+    existingBills.push(newBill);
+    localStorage.setItem("bills", JSON.stringify(existingBills));
 
-  console.log("Bill Saved:", newBill);
+    console.log("Bill Saved:", newBill);
 
-  // Step 5: Remove checked items from orderItems
-  const updatedOrderItems = orderItems.filter((_, index) => !checkedItems[index]);
-  setOrderItems(updatedOrderItems);
+    // Step 5: Remove checked items from orderItems
+    const updatedOrderItems = orderItems.filter((_, index) => !checkedItems[index]);
+    setOrderItems(updatedOrderItems);
 
-  const saved = JSON.parse(localStorage.getItem("orders")) || {};
-  const updatedAllOrders = {
-    ...saved,
-    [tableName]: updatedOrderItems,
-  };
-  localStorage.setItem("orders", JSON.stringify(updatedAllOrders));
-  // 4️⃣ Now sync updated orders to server
-  const payload = {
-    table: tableName,
-    orders: updatedOrderItems,
-  };
+    const saved = JSON.parse(localStorage.getItem("orders")) || {};
+    const updatedAllOrders = {
+      ...saved,
+      [tableName]: updatedOrderItems,
+    };
+    localStorage.setItem("orders", JSON.stringify(updatedAllOrders));
+    // 4️⃣ Now sync updated orders to server
+    const payload = {
+      table: tableName,
+      orders: updatedOrderItems,
+    };
 
-  // Helper: fetch with timeout
-  const fetchWithTimeout = (url, options, timeout = 7000) =>
-    Promise.race([
-      fetch(url, options),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout")), timeout)
-      ),
-    ]);
+    // Helper: fetch with timeout
+    const fetchWithTimeout = (url, options, timeout = 7000) =>
+      Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), timeout)
+        ),
+      ]);
 
-  // Retry mechanism
-  let attempts = 0;
-  const maxAttempts = 3;
-  let success = false;
+    // Retry mechanism
+    let attempts = 0;
+    const maxAttempts = 3;
+    let success = false;
 
-  while (!success && attempts < maxAttempts) {
-    attempts++;
+    while (!success && attempts < maxAttempts) {
+      attempts++;
 
-    try {
-      const res = await fetchWithTimeout(
-        "https://asianloopserver.onrender.com/api/orders",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      try {
+        const res = await fetchWithTimeout(
+          "https://asianloopserver.onrender.com/api/orders",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
 
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
-      const data = await res.json();
-      console.log(`✅ Synced table ${tableName} to DB:`, data);
-      success = true;
+        const data = await res.json();
+        console.log(`✅ Synced table ${tableName} to DB:`, data);
+        success = true;
 
-    } catch (err) {
-      console.warn(`⚠️ Attempt ${attempts} failed:`, err.message);
+      } catch (err) {
+        console.warn(`⚠️ Attempt ${attempts} failed:`, err.message);
+      }
     }
-  }
-  // Step 6: Clear checked state
-  setCheckedItems({});
-};
+    // Step 6: Clear checked state
+    setCheckedItems({});
+  };
 
-return (
-  isOpen && (
-    <div className="text-xl fixed inset-0 bg-gray-400 bg-opacity-50 flex justify-center items-center z-50">
-      <div
-        ref={modalRef}
-        className="bg-white p-6 rounded-lg w-full h-full sm:max-w-md sm:max-h-screen overflow-y-auto relative"
-      >
-        {/* Close button (X) */}
-        <button
-          onClick={() => {
-            onClose();
-            fetchOrders;
-          }}
-          className="absolute mt-12 top-2 right-2 text-2xl font-bold text-white bg-black hover:text-gray-700"
+  return (
+    isOpen && (
+      <div className="text-xl fixed inset-0 bg-gray-400 bg-opacity-50 flex justify-center items-center z-50">
+        <div
+          ref={modalRef}
+          className="bg-white p-6 rounded-lg w-full h-full sm:max-w-md sm:max-h-screen overflow-y-auto relative"
         >
-          X
-        </button>
+          {/* Close button (X) */}
+          <button
+            onClick={() => {
+              onClose();
+              fetchOrders;
+            }}
+            className="absolute mt-12 top-2 right-2 text-2xl font-bold text-white bg-black hover:text-gray-700"
+          >
+            X
+          </button>
 
-        <h2 className="text-3xl font-bold mb-4 mt-10">Tisch {tableName}</h2>
+          <h2 className="text-3xl font-bold mb-4 mt-10">Tisch {tableName}</h2>
 
-        {/* Search Bar */}
-        <div className="mb-4 relative" ref={searchWrapperRef}>
-          <input
-            type="text"
-            placeholder="Search for a dish..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-          {/* Display filtered dishes only if showDishes is true */}
-          {showDishes && searchQuery && filteredDishes.length > 0 && (
-            <div className="absolute left-0 right-0 max-h-48 overflow-y-auto bg-white border border-gray-300 rounded mt-1 z-10">
-              {filteredDishes.map((dish, index) => (
-                <div
-                  key={index}
-                  className="flex justify-between items-center p-2 cursor-pointer hover:bg-gray-200"
-                  onClick={() => {
-                    addOrderItem(dish.name, dish.price); // Add the item to the order
-                    setShowDishes(false); // Close the dropdown
-                    setSearchQuery(""); // Clear the search query
-                  }}
-                >
-                  <span>{dish.name}</span>
-                  <span>{dish.price}€</span>
+          {/* Search Bar */}
+          <div className="mb-4 relative" ref={searchWrapperRef}>
+            <input
+              type="text"
+              placeholder="Search for a dish..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="w-full p-2 border border-gray-300 rounded"
+            />
+            {/* Display filtered dishes only if showDishes is true */}
+            {showDishes && searchQuery && filteredDishes.length > 0 && (
+              <div className="absolute left-0 right-0 max-h-48 overflow-y-auto bg-white border border-gray-300 rounded mt-1 z-10">
+                {filteredDishes.map((dish, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center p-2 cursor-pointer hover:bg-gray-200"
+                    onClick={() => {
+                      addOrderItem(dish.name, dish.price); // Add the item to the order
+                      setShowDishes(false); // Close the dropdown
+                      setSearchQuery(""); // Clear the search query
+                    }}
+                  >
+                    <span>{dish.name}</span>
+                    <span>{dish.price}€</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* If no dishes match the search query, display a "No results" message */}
+            {showDishes && searchQuery && filteredDishes.length === 0 && (
+              <div className="absolute left-0 right-0 p-2 text-center text-gray-500">
+                No results found
+              </div>
+            )}
+          </div>
+
+          {/* Note Box */}
+          <div>
+            <textarea
+              ref={textareaRef}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={1}
+              className="w-full flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 resize-none overflow-hidden"
+              placeholder="Write your note here..."
+            />
+          </div>
+
+          {/* Order Items */}
+          <div className="mt-2 p-1 border border-gray-300 rounded-lg shadow-lg bg-white">
+            {orderItems.map((item, index) => (
+              <div
+                key={index}
+                className="flex justify-between items-center px-2 py-1 border-b last:border-0 hover:bg-gray-100"
+              >
+                {/* Left: Checkbox + Item name */}
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={!!checkedItems[index]}
+                    onChange={() => toggleChecked(index)}
+                    className="w-4 h-4"
+                  />
+                  <span className="font-semibold text-xl">{item.name}</span>
                 </div>
-              ))}
-            </div>
-          )}
 
-          {/* If no dishes match the search query, display a "No results" message */}
-          {showDishes && searchQuery && filteredDishes.length === 0 && (
-            <div className="absolute left-0 right-0 p-2 text-center text-gray-500">
-              No results found
-            </div>
-          )}
-        </div>
+                {/* Right: Price + Remove button */}
+                <div className="flex items-center space-x-0">
+                  <span className="text-xl text-black mr-1 ">{item.price}€</span>
+                  <span
+                    onClick={() => {
+                      // Remove the checkbox state too
+                      setCheckedItems(prev => {
+                        const updated = { ...prev };
+                        delete updated[index];   // delete this checkbox value
+                        return updated;
+                      });
 
-        {/* Note Box */}
-        <div>
-          <textarea
-            ref={textareaRef}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            rows={1}
-            className="w-full flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 resize-none overflow-hidden"
-            placeholder="Write your note here..."
-          />
-        </div>
-
-        {/* Order Items */}
-        <div className="mt-2 p-1 border border-gray-300 rounded-lg shadow-lg bg-white">
-          {orderItems.map((item, index) => (
-            <div
-              key={index}
-              className="flex justify-between items-center px-2 py-1 border-b last:border-0 hover:bg-gray-100"
-            >
-              {/* Left: Checkbox + Item name */}
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={!!checkedItems[index]}
-                  onChange={() => toggleChecked(index)}
-                  className="w-4 h-4"
-                />
-                <span className="font-semibold text-xl">{item.name}</span>
+                      removeOrderItem(index);
+                    }}
+                    className="text-gray-700 text-xl p-0 leading-none cursor-pointer"
+                    style={{ background: 'none', border: 'none' }}
+                  >
+                    ✕
+                  </span>
+                </div>
               </div>
+            ))}
 
-              {/* Right: Price + Remove button */}
-              <div className="flex items-center space-x-0">
-                <span className="text-xl text-black mr-1 ">{item.price}€</span>
-                <span
-                  onClick={() => {
-                    // Remove the checkbox state too
-                    setCheckedItems(prev => {
-                      const updated = { ...prev };
-                      delete updated[index];   // delete this checkbox value
-                      return updated;
-                    });
 
-                    removeOrderItem(index);
-                  }}
-                  className="text-gray-700 text-xl p-0 leading-none cursor-pointer"
-                  style={{ background: 'none', border: 'none' }}
-                >
-                  ✕
-                </span>
+
+          </div>
+          {/* Total price of checked items */}
+          <div className="flex justify-end items-center mt-3 gap-4">
+            {Object.values(checkedItems).some(value => value) && (
+              <button
+                onClick={() => createBillAndRemoveChecked(tableName)}
+                className="bg-green-600 hover:bg-green-800 text-white p-0.5 text-[10px] leading-none rounded-md shadow font-semibold"
+              >
+                Bezahlen
+              </button>
+            )}
+
+            {totalPrice > 0 && (
+              <div className="font-bold text-2xl text-green-700">
+                Getrennt: {totalPrice.toFixed(2)}€
               </div>
-            </div>
-          ))}
+            )}
+          </div>
 
+          {/* Total */}
+          <div className="mt-4 font-bold bg-blue-300 w-full rounded-lg p-4">
+            Insgesamt:<span className="text-2xl ml-20">{calculateTotal()}€</span>
+          </div>
 
 
         </div>
-        {/* Total price of checked items */}
-        <div className="flex justify-end items-center mt-3 gap-4">
-          {Object.values(checkedItems).some(value => value) && (
-            <button
-              onClick={() => createBillAndRemoveChecked(tableName)}
-              className="bg-green-600 hover:bg-green-800 text-white px-0 py-0 text-xs rounded-md shadow font-semibold"
-            >
-              Bezahlen
-            </button>
-          )}
-
-          {totalPrice > 0 && (
-            <div className="font-bold text-xl text-green-700">
-              Getrennt: {totalPrice.toFixed(2)}€
-            </div>
-          )}
-        </div>
-
-        {/* Total */}
-        <div className="mt-4 font-bold bg-blue-300 w-full rounded-lg p-4">
-          Insgesamt:<span className="text-2xl ml-20">{calculateTotal()}€</span>
-        </div>
-
-
       </div>
-    </div>
-  )
-);
+    )
+  );
 };
 
 export default Modal;
