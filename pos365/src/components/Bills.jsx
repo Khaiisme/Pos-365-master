@@ -13,15 +13,17 @@ export default function BillsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-200 flex justify-center">
-      <div className="p-3 w-full">  {/* <-- full width, removed max-w-md */}
-        <p className="text-lg font-bold mb-3 text-center">Rechnung</p>
+    <div className="fixed inset-0 bg-gray-200 bg-opacity-50 flex justify-center items-center z-50 text-sm">
+      <div className="bg-white w-full h-full p-4 rounded-lg overflow-y-auto relative">
+
+        {/* Title */}
+        <p className="text-lg font-bold mb-4 text-center">Rechnung</p>
 
         <div className="space-y-3">
           {bills.map((bill, index) => (
             <div
               key={index}
-              className="border rounded-lg p-3 shadow-sm bg-white"
+              className="border rounded-lg p-3 shadow-sm bg-white w-full"
             >
               {/* Header */}
               <div className="flex justify-between items-center mb-1">
