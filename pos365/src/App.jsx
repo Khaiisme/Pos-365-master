@@ -376,7 +376,7 @@ const dishes = [
   { name: "Flasche Merlot", price: 20 },
   { name: "Merlot", price: 6.5 },
   { name: "Primitivo", price: 6.5 },
-  { name: "Jasmin Tee", price: 3.2 },
+  { name: "Jasmin Tee", price: 3.9 },
   { name: "Gruntee", price: 3.2 },
   { name: "Schwarz Tee", price: 3.2 },
 ];
