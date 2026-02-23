@@ -533,9 +533,9 @@ const App = () => {
 
   // Handle clicking on a table to open the modal and reset order items
   const handleTableClick = (tableName) => {
+   fetchOrders();
     setCurrentTable(tableName);
     setIsModalOpen(true);
-    fetchOrders();
     setOrderItems(storedOrders[tableName] || []); // Load the saved order items for the selected table
   };
 
