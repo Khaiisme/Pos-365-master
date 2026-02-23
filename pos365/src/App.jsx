@@ -366,7 +366,7 @@ const dishes = [
   { name: "~Riesling Halbtrocken", price: 5.5 },
   { name: "~Sauvignon ", price: 6 },
   { name: "~Grauburgrunderschorle ", price: 7 },
-   { name: "~Grauburgrunder ", price: 7 },
+  { name: "~Grauburgrunder ", price: 7 },
   { name: "~Rose trocken", price: 5.5 },
   { name: "~Flasche Rose wein", price: 18 },
   { name: "~Flasche Riesling", price: 21.5 },
@@ -532,11 +532,12 @@ const App = () => {
 
 
   // Handle clicking on a table to open the modal and reset order items
-  const handleTableClick = (tableName) => {
-   fetchOrders();
+  const handleTableClick = async (tableName) => {
+    await fetchOrders();   // ⬅ wait until finished
+
     setCurrentTable(tableName);
+    setOrderItems(storedOrders[tableName] || []);
     setIsModalOpen(true);
-    setOrderItems(storedOrders[tableName] || []); // Load the saved order items for the selected table
   };
 
   // Add order item (dish) to the list
