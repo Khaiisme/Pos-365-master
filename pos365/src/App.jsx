@@ -474,7 +474,25 @@ const App = () => {
     }
   };
 
+  const fetchOrdersTable = async () => {
+    try {
+      const res = await fetch('https://asianloopserver.onrender.com/api/orders');
+      const data = await res.json();
 
+      const ordersObject = {};
+      data.forEach(({ table, orders }) => {
+        ordersObject[table] = orders;
+      });
+
+      localStorage.setItem("orders", JSON.stringify(ordersObject));
+      setStoredOrders(ordersObject);
+
+      return ordersObject;  // ⬅ important
+    } catch (err) {
+      console.error("Order fetch error:", err);
+      return {};
+    }
+  };
 
 
   // 3. INITIAL LOAD (ALWAYS RUNS)
@@ -533,10 +551,10 @@ const App = () => {
 
   // Handle clicking on a table to open the modal and reset order items
   const handleTableClick = async (tableName) => {
-    await fetchOrders();   // ⬅ wait until finished
+    const orders = await fetchOrders();
 
     setCurrentTable(tableName);
-    setOrderItems(storedOrders[tableName] || []);
+    setOrderItems(orders[tableName] || []);
     setIsModalOpen(true);
   };
 
