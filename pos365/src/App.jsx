@@ -772,9 +772,13 @@ const App = () => {
           return (
             <div
               key={index}
-              className={`cursor-pointer rounded-xl p-2 transition-colors ${hasOrder ? "bg-green-200 text-white" : "bg-white"
+              className={`cursor-pointer rounded-xl p-2 transition-colors select-none ${hasOrder ? "bg-green-200 text-white" : "bg-white"
                 }`}
-              onClick={() => handleTableClick(table)}
+              onClick={() => {
+                fetchOrders();
+                handleTableClick(table);
+                
+              }}
             >
               <Table number={table} />
             </div>
