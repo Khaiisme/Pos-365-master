@@ -551,10 +551,8 @@ const App = () => {
 
   // Handle clicking on a table to open the modal and reset order items
   const handleTableClick = async (tableName) => {
-    const orders = await fetchOrdersTable();
-
     setCurrentTable(tableName);
-    setOrderItems(orders[tableName] || []);
+    setOrderItems(storedOrders[tableName] || []);
     setIsModalOpen(true);
   };
 
