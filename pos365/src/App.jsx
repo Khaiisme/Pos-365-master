@@ -520,7 +520,7 @@ const App = () => {
         if (!isModalOpenRef.current) {
           fetchOrders();
         }
-      }, 5000);
+      }, 3000);
     }
 
     return () => clearInterval(interval);
@@ -774,7 +774,6 @@ const App = () => {
               className={`cursor-pointer rounded-xl p-2 transition-colors select-none ${hasOrder ? "bg-green-200 text-white" : "bg-white"
                 }`}
               onClick={() => {
-                fetchOrders();
                 handleTableClick(table);
                 
               }}
