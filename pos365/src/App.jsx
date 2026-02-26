@@ -357,6 +357,7 @@ const dishes = [
   { name: "~Tiger Bier ", price: 4.5 },
   { name: "~Saigon Bier", price: 4.5 },
   { name: "~Hefeweizen ", price: 5.5 },
+  { name: "~Bitburger Alkoholfrei", price: 3.9 },
   { name: "~Hefeweizen Alkoholfrei", price: 5.5 },
   { name: "~Hanoi Bier ", price: 4.5 },
 
