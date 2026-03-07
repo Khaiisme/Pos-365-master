@@ -513,19 +513,14 @@ const App = () => {
   // ----------------------
   // 1. Start interval only once when component mounts
   useEffect(() => {
-    let interval;
-
     if (!isModalOpen) {
-      interval = setInterval(() => {
+      setInterval(() => {
         if (!isModalOpenRef.current) {
           fetchOrders();
         }
-      }, 3000);
+      }, 1500);
     }
-
-    return () => clearInterval(interval);
   }, [isModalOpen]);
-
 
 
   function Connecting() {
@@ -775,7 +770,7 @@ const App = () => {
                 }`}
               onClick={() => {
                 handleTableClick(table);
-                
+
               }}
             >
               <Table number={table} />
