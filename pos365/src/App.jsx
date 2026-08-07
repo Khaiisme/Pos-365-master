@@ -389,24 +389,27 @@ const App = () => {
 
   // Read from localStorage and set the initial state for tables and orders
   const storedTables = JSON.parse(localStorage.getItem("tables")) || [
-    ...Array.from({ length: 15 }, (_, i) => i + 1),         // 1 to 11
-    ...Array.from({ length: 8 }, (_, i) => i + 20)          // 15 to 19
+    ...Array.from({ length: 15 }, (_, i) => i + 1),
+    ...Array.from({ length: 8 }, (_, i) => i + 20)
   ];
-  let storedOrders = {};
-  try {
-    const raw = localStorage.getItem("orders");
-    storedOrders = raw ? JSON.parse(raw) : {};
-  } catch (e) {
-    console.error("Failed to parse orders from localStorage:", e);
-    storedOrders = {};
-  }
+
+  const initialOrders = (() => {
+    try {
+      const raw = localStorage.getItem("orders");
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      console.error("Failed to parse orders from localStorage:", e);
+      return {};
+    }
+  })();
 
   const [tables, setTables] = useState(storedTables);
-  const [orderItems, setOrderItems] = useState(storedOrders);
+  const [allOrders, setAllOrders] = useState(initialOrders);
+  const [orderItems, setOrderItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isModalOpenRef = useRef(isModalOpen);
   const [currentTable, setCurrentTable] = useState(null);
-  const [loading, setLoading] = useState(true); // Loading state
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [firstTable, setFirstTable] = useState("");
   const [secondTable, setSecondTable] = useState("");
@@ -458,6 +461,63 @@ const App = () => {
 
   // 2. FETCH FUNCTIONS
   // ----------------------
+  const syncTableOrders = async (table, orders) => {
+    if (!table) return;
+
+    const payload = { table, orders };
+    const fetchWithTimeout = (url, options, timeout = 7000) =>
+      Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), timeout)
+        ),
+      ]);
+
+    let attempts = 0;
+    const maxAttempts = 3;
+    let success = false;
+
+    while (!success && attempts < maxAttempts) {
+      attempts++;
+      try {
+        const res = await fetchWithTimeout(
+          "https://asianloopserver.onrender.com/api/orders",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
+
+        if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+
+        const data = await res.json();
+        console.log("✅ Synced table", table, "to DB:", data);
+        success = true;
+      } catch (err) {
+        console.warn(`Attempt ${attempts} failed:`, err.message);
+        if (attempts < maxAttempts) {
+          await new Promise((r) => setTimeout(r, 1500));
+        } else {
+          console.error("❌ Failed after 3 attempts", err);
+          alert(
+            `⚠️ Could not sync table ${table} to server. Please check connection.`
+          );
+        }
+      }
+    }
+  };
+
+  const saveCurrentTableOrders = async (updatedOrderItems) => {
+    if (!currentTable) return;
+
+    const updatedAllOrders = { ...allOrders, [currentTable]: updatedOrderItems };
+    setOrderItems(updatedOrderItems);
+    setAllOrders(updatedAllOrders);
+    localStorage.setItem("orders", JSON.stringify(updatedAllOrders));
+    await syncTableOrders(currentTable, updatedOrderItems);
+  };
+
   const fetchOrders = async () => {
     try {
       const res = await fetch('https://asianloopserver.onrender.com/api/orders');
@@ -469,7 +529,11 @@ const App = () => {
       });
 
       localStorage.setItem("orders", JSON.stringify(ordersObject));
-      setOrderItems(ordersObject);
+      setAllOrders(ordersObject);
+
+      if (currentTable) {
+        setOrderItems(ordersObject[currentTable] || []);
+      }
     } catch (err) {
       console.error("Order fetch error:", err);
     }
@@ -486,9 +550,9 @@ const App = () => {
       });
 
       localStorage.setItem("orders", JSON.stringify(ordersObject));
-      setStoredOrders(ordersObject);
+      setAllOrders(ordersObject);
 
-      return ordersObject;  // ⬅ important
+      return ordersObject;
     } catch (err) {
       console.error("Order fetch error:", err);
       return {};
@@ -518,7 +582,7 @@ const App = () => {
         if (!isModalOpenRef.current) {
           fetchOrders();
         }
-      }, 1500);
+      }, 700);
     }
   }, [isModalOpen]);
 
@@ -548,7 +612,7 @@ const App = () => {
   // Handle clicking on a table to open the modal and reset order items
   const handleTableClick = async (tableName) => {
     setCurrentTable(tableName);
-    setOrderItems(storedOrders[tableName] || []);
+    setOrderItems(allOrders[tableName] || []);
     setIsModalOpen(true);
   };
 
@@ -556,17 +620,8 @@ const App = () => {
   const addOrderItem = async (name, price) => {
     const newOrderItem = { name, price };
     const updatedOrderItems = [...orderItems, newOrderItem];
-
-    // ✅ only update the chosen table in localStorage
-    const updatedOrders = { ...storedOrders, [currentTable]: updatedOrderItems };
-    setOrderItems(updatedOrderItems);
-    localStorage.setItem("orders", JSON.stringify(updatedOrders));
-
-    // ✅ send only this table’s data to server
-    const payload = {
-      table: currentTable,
-      orders: updatedOrderItems,
-    };
+    await saveCurrentTableOrders(updatedOrderItems);
+  };
 
     // 🕒 helper for timeout
     const fetchWithTimeout = (url, options, timeout = 7000) =>
@@ -618,17 +673,8 @@ const App = () => {
   // Remove order item from the list
   const removeOrderItem = async (index) => {
     const updatedOrderItems = orderItems.filter((_, i) => i !== index);
-    setOrderItems(updatedOrderItems);
-
-    // 💾 Update local cache immediately
-    const updatedOrders = { ...storedOrders, [currentTable]: updatedOrderItems };
-    localStorage.setItem("orders", JSON.stringify(updatedOrders));
-
-    // ✅ Only send current table to server
-    const payload = {
-      table: currentTable,
-      orders: updatedOrderItems,
-    };
+    await saveCurrentTableOrders(updatedOrderItems);
+  };
 
     // 🕒 Helper: fetch with timeout
     const fetchWithTimeout = (url, options, timeout = 7000) =>
@@ -673,13 +719,13 @@ const App = () => {
         }
       }
     }
-  };
+  ;
 
 
 
-  const tablesWithOrders = Object.keys(storedOrders).filter(
-    (table) => storedOrders[table] && storedOrders[table].length > 0
-  ).map(Number); // convert to number if needed
+  const tablesWithOrders = Object.keys(allOrders)
+    .filter((table) => allOrders[table] && allOrders[table].length > 0)
+    .map(Number); // convert to number if needed
 
 
   const handleRefreshTwice = () => {
@@ -792,6 +838,7 @@ const App = () => {
         setTables={setTables}
         addOrderItem={addOrderItem}
         removeOrderItem={removeOrderItem}
+        reorderOrderItems={saveCurrentTableOrders}
         dishes={dishes}
       />
 
@@ -894,6 +941,6 @@ const App = () => {
 
 
   );
-};
+
 
 export default App;

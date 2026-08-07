@@ -12,10 +12,12 @@ const Modal = ({
   setTables,
   addOrderItem,
   removeOrderItem,
+  reorderOrderItems,
   dishes,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showDishes, setShowDishes] = useState(false); // To control the visibility of the filtered dishes
+  const [draggedIndex, setDraggedIndex] = useState(null);
   const modalRef = useRef(null); // Reference for the modal
   const searchWrapperRef = useRef(null); // Reference for the search wrapper
   const [note, setNote] = useState("");
@@ -85,7 +87,49 @@ const Modal = ({
     setShowDishes(true); // Show dishes when the user starts typing
   };
 
+  const handleDragStart = (event, index) => {
+    setDraggedIndex(index);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", String(index));
+  };
 
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = async (event, targetIndex) => {
+    event.preventDefault();
+    const sourceIndex = draggedIndex ?? Number(event.dataTransfer.getData("text/plain"));
+    if (sourceIndex === null || sourceIndex === undefined || sourceIndex === targetIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
+    const updatedOrderItems = [...orderItems];
+    const [movedItem] = updatedOrderItems.splice(sourceIndex, 1);
+    updatedOrderItems.splice(targetIndex, 0, movedItem);
+
+    const updatedCheckedItems = {};
+    Object.entries(checkedItems).forEach(([key, value]) => {
+      const index = Number(key);
+      if (!value) return;
+
+      if (index === sourceIndex) {
+        updatedCheckedItems[targetIndex] = true;
+      } else if (sourceIndex < targetIndex && index > sourceIndex && index <= targetIndex) {
+        updatedCheckedItems[index - 1] = true;
+      } else if (sourceIndex > targetIndex && index < sourceIndex && index >= targetIndex) {
+        updatedCheckedItems[index + 1] = true;
+      } else {
+        updatedCheckedItems[index] = true;
+      }
+    });
+
+    setCheckedItems(updatedCheckedItems);
+    await reorderOrderItems(updatedOrderItems);
+    setDraggedIndex(null);
+  };
 
   const textareaRef = useRef(null);
   useEffect(() => {
@@ -280,8 +324,12 @@ const Modal = ({
           <div className="mt-2 p-1 border border-gray-300 rounded-lg shadow-lg bg-white">
             {orderItems.map((item, index) => (
               <div
-                key={index}
-                className="flex justify-between items-center px-2 py-1 border-b last:border-0 hover:bg-gray-100"
+                key={`${item.name}-${index}`}
+                draggable
+                onDragStart={(event) => handleDragStart(event, index)}
+                onDragOver={handleDragOver}
+                onDrop={(event) => handleDrop(event, index)}
+                className={`flex justify-between items-center px-2 py-1 border-b last:border-0 hover:bg-gray-100 ${draggedIndex === index ? 'opacity-50' : ''}`}
               >
                 {/* Left: Checkbox + Item name */}
                 <div className="flex items-center space-x-2">
