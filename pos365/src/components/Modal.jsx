@@ -18,8 +18,10 @@ const Modal = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [showDishes, setShowDishes] = useState(false); // To control the visibility of the filtered dishes
   const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragReadyIndex, setDragReadyIndex] = useState(null);
   const modalRef = useRef(null); // Reference for the modal
   const searchWrapperRef = useRef(null); // Reference for the search wrapper
+  const longPressTimerRef = useRef(null);
   const [note, setNote] = useState("");
   // Calculate the total
 
@@ -87,7 +89,34 @@ const Modal = ({
     setShowDishes(true); // Show dishes when the user starts typing
   };
 
+  const clearLongPressTimer = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const handleItemPressStart = (index) => {
+    clearLongPressTimer();
+    longPressTimerRef.current = setTimeout(() => {
+      setDragReadyIndex(index);
+    }, 1000);
+  };
+
+  const handleItemPressEnd = () => {
+    clearLongPressTimer();
+  };
+
+  useEffect(() => {
+    return () => clearLongPressTimer();
+  }, []);
+
   const handleDragStart = (event, index) => {
+    if (dragReadyIndex !== index) {
+      event.preventDefault();
+      return;
+    }
+
     setDraggedIndex(index);
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", String(index));
@@ -135,6 +164,7 @@ const Modal = ({
     setOrderItems(normalizedOrderItems);
     await reorderOrderItems(normalizedOrderItems);
     setDraggedIndex(null);
+    setDragReadyIndex(null);
   };
 
   const textareaRef = useRef(null);
@@ -331,11 +361,17 @@ const Modal = ({
             {orderItems.map((item, index) => (
               <div
                 key={`${item.name}-${index}`}
-                draggable
+                draggable={dragReadyIndex === index}
+                onMouseDown={() => handleItemPressStart(index)}
+                onMouseUp={handleItemPressEnd}
+                onMouseLeave={handleItemPressEnd}
+                onTouchStart={() => handleItemPressStart(index)}
+                onTouchEnd={handleItemPressEnd}
+                onTouchCancel={handleItemPressEnd}
                 onDragStart={(event) => handleDragStart(event, index)}
                 onDragOver={handleDragOver}
                 onDrop={(event) => handleDrop(event, index)}
-                className={`flex justify-between items-center px-2 py-1 border-b last:border-0 hover:bg-gray-100 ${draggedIndex === index ? 'opacity-50' : ''}`}
+                className={`flex justify-between items-center px-2 py-1 border-b last:border-0 hover:bg-gray-100 ${draggedIndex === index ? 'opacity-50' : ''} ${dragReadyIndex === index ? 'ring-2 ring-blue-400' : ''}`}
               >
                 {/* Left: Checkbox + Item name */}
                 <div className="flex items-center space-x-2">
