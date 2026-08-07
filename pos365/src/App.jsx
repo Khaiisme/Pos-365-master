@@ -415,7 +415,19 @@ const App = () => {
   const [secondTable, setSecondTable] = useState("");
   const [showBills, setShowBills] = useState(false);
 
+  const normalizeOrderItems = (items = []) =>
+    (Array.isArray(items) ? items : []).map((item, index) => {
+      const normalizedItem =
+        item && typeof item === "object"
+          ? { ...item }
+          : { name: String(item ?? ""), price: 0 };
 
+      return {
+        ...normalizedItem,
+        price: Number(normalizedItem.price) || 0,
+        index,
+      };
+    });
 
   useEffect(() => {
     const INACTIVITY_LIMIT = 40 * 60 * 1000; // 40 minutes
@@ -464,7 +476,7 @@ const App = () => {
   const syncTableOrders = async (table, orders) => {
     if (!table) return;
 
-    const payload = { table, orders };
+    const payload = { table, orders: normalizeOrderItems(orders) };
     const fetchWithTimeout = (url, options, timeout = 7000) =>
       Promise.race([
         fetch(url, options),
@@ -511,11 +523,13 @@ const App = () => {
   const saveCurrentTableOrders = async (updatedOrderItems) => {
     if (!currentTable) return;
 
-    const updatedAllOrders = { ...allOrders, [currentTable]: updatedOrderItems };
-    setOrderItems(updatedOrderItems);
+    const normalizedItems = normalizeOrderItems(updatedOrderItems);
+    const updatedAllOrders = { ...allOrders, [currentTable]: normalizedItems };
+
+    setOrderItems(normalizedItems);
     setAllOrders(updatedAllOrders);
     localStorage.setItem("orders", JSON.stringify(updatedAllOrders));
-    await syncTableOrders(currentTable, updatedOrderItems);
+    await syncTableOrders(currentTable, normalizedItems);
   };
 
   const fetchOrders = async () => {
@@ -525,7 +539,7 @@ const App = () => {
 
       const ordersObject = {};
       data.forEach(({ table, orders }) => {
-        ordersObject[table] = orders;
+        ordersObject[table] = normalizeOrderItems(orders);
       });
 
       localStorage.setItem("orders", JSON.stringify(ordersObject));
@@ -546,7 +560,7 @@ const App = () => {
 
       const ordersObject = {};
       data.forEach(({ table, orders }) => {
-        ordersObject[table] = orders;
+        ordersObject[table] = normalizeOrderItems(orders);
       });
 
       localStorage.setItem("orders", JSON.stringify(ordersObject));
@@ -612,116 +626,22 @@ const App = () => {
   // Handle clicking on a table to open the modal and reset order items
   const handleTableClick = async (tableName) => {
     setCurrentTable(tableName);
-    setOrderItems(allOrders[tableName] || []);
+    setOrderItems(normalizeOrderItems(allOrders[tableName] || []));
     setIsModalOpen(true);
   };
 
   // Add order item (dish) to the list
   const addOrderItem = async (name, price) => {
     const newOrderItem = { name, price };
-    const updatedOrderItems = [...orderItems, newOrderItem];
+    const updatedOrderItems = normalizeOrderItems([...orderItems, newOrderItem]);
     await saveCurrentTableOrders(updatedOrderItems);
   };
-
-    // 🕒 helper for timeout
-    const fetchWithTimeout = (url, options, timeout = 7000) =>
-      Promise.race([
-        fetch(url, options),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Timeout")), timeout)
-        ),
-      ]);
-
-    // 🔁 retry mechanism (3 attempts)
-    let attempts = 0;
-    const maxAttempts = 3;
-    let success = false;
-
-    while (!success && attempts < maxAttempts) {
-      attempts++;
-      try {
-        const res = await fetchWithTimeout(
-          "https://asianloopserver.onrender.com/api/orders",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          }
-        );
-
-        if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-        const data = await res.json();
-        console.log("✅ Synced table", currentTable, "to DB:", data);
-        success = true;
-      } catch (err) {
-        console.warn(`Attempt ${attempts} failed:`, err.message);
-        if (attempts === maxAttempts) {
-          console.error("❌ Failed after 3 attempts");
-          alert(
-            `⚠️ Could not sync table ${currentTable} to server. Will retry automatically later.`
-          );
-        } else {
-          await new Promise((r) => setTimeout(r, 1500)); // wait before retry
-        }
-      }
-    }
-  };
-
-
-
 
   // Remove order item from the list
   const removeOrderItem = async (index) => {
-    const updatedOrderItems = orderItems.filter((_, i) => i !== index);
+    const updatedOrderItems = normalizeOrderItems(orderItems.filter((_, i) => i !== index));
     await saveCurrentTableOrders(updatedOrderItems);
   };
-
-    // 🕒 Helper: fetch with timeout
-    const fetchWithTimeout = (url, options, timeout = 7000) =>
-      Promise.race([
-        fetch(url, options),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Timeout")), timeout)
-        ),
-      ]);
-
-    // 🔁 Retry logic (3 attempts)
-    let attempts = 0;
-    const maxAttempts = 3;
-    let success = false;
-
-    while (!success && attempts < maxAttempts) {
-      attempts++;
-      try {
-        const res = await fetchWithTimeout(
-          "https://asianloopserver.onrender.com/api/orders",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          }
-        );
-
-        if (!res.ok) throw new Error(`Server error: ${res.status}`);
-
-        const data = await res.json();
-        console.log("✅ Synced table", currentTable, "to DB:", data);
-        success = true;
-      } catch (err) {
-        console.warn(`Attempt ${attempts} failed:`, err.message);
-        if (attempts < maxAttempts) {
-          await new Promise((r) => setTimeout(r, 1500)); // wait 1.5s before retry
-        } else {
-          console.error("❌ Failed after 3 attempts:", err);
-          alert(
-            `⚠️ Could not sync table ${currentTable} with the server. Will retry later.`
-          );
-        }
-      }
-    }
-  ;
-
-
 
   const tablesWithOrders = Object.keys(allOrders)
     .filter((table) => allOrders[table] && allOrders[table].length > 0)
@@ -936,11 +856,7 @@ const App = () => {
         </div>
       )}
     </div>
-
-
-
-
   );
-
+};
 
 export default App;

@@ -110,6 +110,11 @@ const Modal = ({
     const [movedItem] = updatedOrderItems.splice(sourceIndex, 1);
     updatedOrderItems.splice(targetIndex, 0, movedItem);
 
+    const normalizedOrderItems = updatedOrderItems.map((item, index) => ({
+      ...item,
+      index,
+    }));
+
     const updatedCheckedItems = {};
     Object.entries(checkedItems).forEach(([key, value]) => {
       const index = Number(key);
@@ -127,7 +132,8 @@ const Modal = ({
     });
 
     setCheckedItems(updatedCheckedItems);
-    await reorderOrderItems(updatedOrderItems);
+    setOrderItems(normalizedOrderItems);
+    await reorderOrderItems(normalizedOrderItems);
     setDraggedIndex(null);
   };
 
